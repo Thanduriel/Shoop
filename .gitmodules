@@ -1,0 +1,6 @@
+[submodule "dependencies/Box2D"]
+	path = dependencies/Box2D
+	url = git@github.com:erincatto/Box2D.git
+[submodule "dependencies/SFML"]
+	path = dependencies/SFML
+	url = git@github.com:SFML/SFML.git
