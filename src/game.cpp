@@ -1,6 +1,8 @@
 #include "game.hpp"
 #include "Box2D/Box2D.h"
 
+#include "resources.hpp"
+
 Shoop::Shoop(int _sizeX, int _sizeY)
 	: m_window(sf::VideoMode(_sizeX, _sizeY), "shoop")
 {
@@ -11,6 +13,8 @@ Shoop::Shoop(int _sizeX, int _sizeY)
 void Shoop::Run()
 {
 	sf::Clock clock;
+
+	const sf::Image& t = Resources::Load<sf::Image>("pixel");
 
 	while (m_window.isOpen())
 	{
