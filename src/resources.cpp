@@ -8,7 +8,7 @@
 namespace Details {
 
 		template<class Ty, class T, typename FuncType = decltype(&T::loadFromFile), FuncType Fn = &T::loadFromFile>
-		typename T& Load(const std::string& _name)
+		 T& Load(const std::string& _name)
 		{
 			static std::unordered_map<std::string, T> map;
 
@@ -33,7 +33,7 @@ namespace Details {
 template<typename T>
 T& Resources::Load(const std::string& _name)
 {
-	static_assert(false, "This managed resource is not implemented.");
+    //	static_assert(false, "This managed resource is not implemented.");
 }
 
 
@@ -45,15 +45,16 @@ T& Resources::Load(const std::string& _name)
 *	ROOTSTR		- relative root path that is used as prefix to the name
 *	ENDINGSTR	- standard file ending that is appended as a postfix
 */
-#define SFML_RESOURCE(TYPE, ROOTSTR, ENDINGSTR)				\
-	template<>															\
-	class Details::PlaceHolder<TYPE>									\
-	{																	\
-	public:																\
-		constexpr static const char* ROOT = ROOTSTR;					\
-		constexpr static const char* FILE_ENDING = ENDINGSTR;			\
-	};																	\
-																		\
+#define SFML_RESOURCE(TYPE, ROOTSTR, ENDINGSTR)			            	\
+    namespace Details{                                                  \
+    template<>                                                          \
+    class PlaceHolder<TYPE>                                             \
+    {                                                                   \
+    public:                                                             \
+        constexpr static const char* ROOT = ROOTSTR;                    \
+        constexpr static const char* FILE_ENDING = ENDINGSTR;           \
+    };                                                                  \
+    }																	\
 	template<>															\
 	TYPE& Resources::Load<TYPE>(const std::string& _s)					\
 	{																	\
