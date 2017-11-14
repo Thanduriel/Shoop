@@ -1,6 +1,6 @@
 #include "game.hpp"
 #include "Box2D/Box2D.h"
-
+#include "gamestates/gsplay.hpp"
 #include "resources.hpp"
 
 Shoop::Shoop(int _sizeX, int _sizeY)
@@ -10,13 +10,20 @@ Shoop::Shoop(int _sizeX, int _sizeY)
 	b2World world(b2Vec2(0.f, -9.81f));
 }
 
+// explicit definition here for the destructor of GameState
+Shoop::~Shoop()
+{
+}
+
 void Shoop::Run()
 {
 	sf::Clock clock;
 
 	const sf::Image& t = Resources::Load<sf::Image>("pixel");
 
-	while (m_window.isOpen())
+	m_states.emplace_back(new Game::GSPlay());
+
+	while (m_states.size() && m_window.isOpen())
 	{
 		// handle events
 		sf::Event event;
@@ -28,6 +35,16 @@ void Shoop::Run()
 
 		sf::Time elapsed = clock.restart();
 
+		Game::GameState* currentState = m_states.back().get();
+		currentState->Process(elapsed.asSeconds());
+		currentState->Draw();
+
+		auto newState = currentState->GetNewState();
+		if (currentState->IsFinished()) m_states.pop_back();
+		if (newState) m_states.emplace_back(std::move(newState));
+
+		// currentState could be invalid at this point, but the address is still correct
+		if (m_states.size() && currentState != m_states.back().get()) m_states.back()->OnBegin();
 
 		m_window.clear(sf::Color(0, 255, 0));
 		m_window.display();
