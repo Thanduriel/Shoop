@@ -25,7 +25,7 @@ void Shoop::Run()
 		sf::Time elapsed = clock.restart();
 
 
-		m_window.clear(sf::Color(0, 255, 0));
+		m_window.clear(sf::Color(100, 149, 237));
 		m_window.display();
 	}
 }
