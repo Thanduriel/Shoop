@@ -1,5 +1,6 @@
 #include <string>
 #include <unordered_map>
+#include <assert.h>
 
 #include "SFML/Graphics.hpp"
 #include "resources.hpp"
@@ -8,7 +9,7 @@
 namespace Details {
 
 		template<class Ty, class T, typename FuncType = decltype(&T::loadFromFile), FuncType Fn = &T::loadFromFile>
-		 T& Load(const std::string& _name)
+		T& Load(const std::string& _name)
 		{
 			static std::unordered_map<std::string, T> map;
 
@@ -26,14 +27,6 @@ namespace Details {
 
 	template<typename T>
 	class PlaceHolder {};
-}
-
-
-// default fall back
-template<typename T>
-T& Resources::Load(const std::string& _name)
-{
-    //	static_assert(false, "This managed resource is not implemented.");
 }
 
 
@@ -73,15 +66,16 @@ T& Resources::Load(const std::string& _name)
 * example:
 RESOURCE(sf::Image, "../content/texture/", ".png", loadFromFile);
 */
-#define RESOURCE(TYPE, ROOTSTR, ENDINGSTR, LOADFUNC)				\
+#define RESOURCE(TYPE, ROOTSTR, ENDINGSTR, LOADFUNC)					\
+	namespace Details{                                                  \
 	template<>															\
-	class Details::PlaceHolder<TYPE>									\
+	class PlaceHolder<TYPE>									\
 	{																	\
 	public:																\
 		constexpr static const char* ROOT = ROOTSTR;					\
 		constexpr static const char* FILE_ENDING = ENDINGSTR;			\
 	};																	\
-																		\
+	}																	\
 	template<>															\
 	TYPE& Resources::Load<TYPE>(const std::string& _s)					\
 	{																	\
@@ -89,7 +83,12 @@ RESOURCE(sf::Image, "../content/texture/", ".png", loadFromFile);
 	}														\
 
 
+// add more resources here
+
 SFML_RESOURCE(sf::Image, "../content/texture/", ".png");
+
+
+
 
 /*
 class TextureTrait
