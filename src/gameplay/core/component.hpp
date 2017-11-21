@@ -1,5 +1,7 @@
 #pragma once
 
+#define THISACTOR *static_cast<Actor*>(this)
+
 namespace Game {
 
 	class Actor;
@@ -10,10 +12,11 @@ namespace Game {
 		enum struct Type
 		{
 			Draw,
-			Process
+			Process,
+			Factory
 		};
 
-		Component(Actor& _actor, Type _type) : m_actor(_actor), m_type(_type) { _actor.GetComponents().emplace_back(*this); }
+		Component(Actor& _actor, Type _type);
 		
 		// A component always requires an owning Actor.
 		// Reasonable copy constructors take an Actor&.
@@ -50,4 +53,6 @@ namespace Game {
 
 		virtual void Draw() = 0;
 	};
+
+
 }

@@ -52,8 +52,10 @@ if(MSVC)
 	add_compile_options( "${OPTIMIZATION_OPTIONS}" )
 endif(MSVC)
 
+include_directories("src")
 add_executable(shoop ${SOURCE_FILES})
 
+#SFML
 include_directories("dependencies/SFML/include")
 target_link_libraries(shoop sfml-system sfml-graphics sfml-window)
 
