@@ -59,7 +59,7 @@ namespace Game {
 	{
 		// collect actors created by all known factories
 		// it is possible that new factories are added, making any iterator invalid
-		size_t size = m_factoryComponents.size();
+		const size_t size = m_factoryComponents.size();
 		for (size_t i = 0; i < size; ++i)
 		{
 			auto& container = m_factoryComponents[i].get().m_createdActors;

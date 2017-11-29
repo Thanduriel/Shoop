@@ -3,7 +3,7 @@ project (shoop)
 set (CMAKE_CXX_STANDARD 17)
 
 # find all source and header files
-file(GLOB_RECURSE SOURCE_FILES "src/*.hpp" "src/*.cpp")
+file(GLOB_RECURSE SOURCE_FILES "src/*.hpp" "src/*.cpp" "src/*.inl")
 
 # organize the files according to the organisation in the file system
 # from: http://cmake.3232098.n2.nabble.com/Keep-folder-structure-in-Visual-Studio-Project-generated-with-CMake-td7586044.html
