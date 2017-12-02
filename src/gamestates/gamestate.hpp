@@ -2,15 +2,19 @@
 
 #include <memory>
 
+namespace sf {
+	class RenderWindow;
+}
+
 namespace Game
 {
 	class GameState
 	{
 	public:
-
+		GameState() : m_isFinished(false) {}
 		virtual ~GameState() {}
 		virtual void Process(float _deltaTime) = 0;
-		virtual void Draw() = 0;
+		virtual void Draw(sf::RenderWindow& _window) = 0;
 
 		// called when the state is on top of the stack after state changes
 		virtual void OnBegin() {}

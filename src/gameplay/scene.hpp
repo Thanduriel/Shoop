@@ -4,6 +4,10 @@
 #include <memory>
 #include <functional>
 
+namespace sf {
+	class RenderWindow;
+}
+
 namespace Game {
 
 	class Actor;
@@ -24,7 +28,7 @@ namespace Game {
 		void Add(Actor& _actor);
 
 		void Process(float _deltaTime);
-		void Draw() const;
+		void Draw(sf::RenderWindow& _window) const;
 
 		// Removes destroyed Actors and associated components.
 		void CleanUp();

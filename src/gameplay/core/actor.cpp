@@ -2,8 +2,8 @@
 
 namespace Game {
 
-	Actor::Actor()
-		: m_rotation(0.f),
-		m_scale(1.f)
+	Actor::Actor(Math::Vec2 _position, float _rotation, Math::Vec2 _scale)
+		: Transformation(_position, _rotation, _scale),
+		m_isDestroyed(false)
 	{}
 }

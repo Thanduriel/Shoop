@@ -8,8 +8,8 @@
 
 namespace Details {
 
-		template<class Ty, class T, typename FuncType = decltype(&T::loadFromFile), FuncType Fn = &T::loadFromFile>
-		T& Load(const std::string& _name)
+		template<class Ty, class T, typename FuncType = decltype(&T::loadFromFile), FuncType Fn = &T::loadFromFile,typename... TArgs>
+		T& Load(const std::string& _name, TArgs&&... _args)
 		{
 			static std::unordered_map<std::string, T> map;
 
@@ -18,7 +18,7 @@ namespace Details {
 			if (it == map.end())
 			{
 				T obj;
-				(obj.*Fn)(Ty::ROOT + _name + Ty::FILE_ENDING);
+				(obj.*Fn)(Ty::ROOT + _name + Ty::FILE_ENDING, std::forward<TArgs>(_args)...);
 				map.emplace(_name, std::move(obj));
 			}
 
@@ -87,18 +87,16 @@ RESOURCE(sf::Image, "../content/texture/", ".png", loadFromFile);
 
 SFML_RESOURCE(sf::Image, "../content/texture/", ".png");
 
-
-
-
-/*
+// Texture can not use the default variant as its load takes an additional argument.
 class TextureTrait
 {
 public:
-constexpr static const char* ROOT = "../content/texture/";
-constexpr static const char* FILE_ENDING = ".png";
+	constexpr static const char* ROOT = "../content/texture/";
+	constexpr static const char* FILE_ENDING = ".png";
 };
-
 template<>
-class Resources<sf::Image> : public Details::ResourcesImpl<TextureTrait, sf::Image>
-{};*/
+sf::Texture& Resources::Load<sf::Texture>(const std::string& _name)
+{
+	return Details::Load < TextureTrait, sf::Texture, decltype(&sf::Texture::loadFromFile), &sf::Texture::loadFromFile> (_name, sf::IntRect());
+}
 

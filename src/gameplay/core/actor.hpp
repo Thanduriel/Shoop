@@ -1,25 +1,20 @@
 #pragma once
 
 #include <vector>
+#include "math/transformation.hpp"
 
 namespace Game {
 
 	class Component;
 
-	class Actor 
+	class Actor : public Math::Transformation
 	{
 	public:
-		Actor();
+		Actor(Math::Vec2 _position = Math::Vec2{}, float _rotation = 0.f, Math::Vec2 _scale = Math::Vec2(1.f));
 		virtual ~Actor() {}
 
 		Actor(Actor&&) = delete;
 		Actor& operator=(Actor&&) = delete;
-
-		void SetRotation(float _rotation) { m_rotation = _rotation; }
-		float GetRotation() const { return m_rotation; }
-
-		void SetScale(float _scale) { m_scale = _scale; }
-		float GetScale() const { return m_scale; }
 
 		// Marks this actor for destruction.
 		// It will be removed at the end of the frame.
@@ -27,9 +22,7 @@ namespace Game {
 		bool IsDestroyed() const { return m_isDestroyed; }
 
 		std::vector < std::reference_wrapper<Component>>& GetComponents() { return m_components; }
-	protected:
-		float m_rotation;
-		float m_scale;
+
 	private:
 		bool m_isDestroyed;
 		std::vector < std::reference_wrapper<Component>> m_components;

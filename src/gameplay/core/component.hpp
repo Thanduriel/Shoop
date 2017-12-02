@@ -2,6 +2,10 @@
 
 #define THISACTOR *static_cast<Actor*>(this)
 
+namespace sf {
+	class RenderWindow;
+}
+
 namespace Game {
 
 	class Actor;
@@ -51,7 +55,7 @@ namespace Game {
 	public:
 		DrawComponent(Actor& _actor) : Component(_actor, Type::Draw) {}
 
-		virtual void Draw() = 0;
+		virtual void Draw(sf::RenderWindow&) = 0;
 	};
 
 

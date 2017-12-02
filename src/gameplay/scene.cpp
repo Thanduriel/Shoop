@@ -22,12 +22,14 @@ namespace Game {
 	// **************************************************************** //
 	void Scene::Process(float _deltaTime)
 	{
-
+		for (ProcessComponent& component : m_processComponents)
+			component.Process(_deltaTime);
 	}
 
-	void Scene::Draw() const
+	void Scene::Draw(sf::RenderWindow& _window) const
 	{
-
+		for (auto& component : m_drawComponents)
+			component.get().Draw(_window);
 	}
 
 	// **************************************************************** //

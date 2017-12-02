@@ -1,9 +1,10 @@
 #pragma once
 
-#include <math.h>
+#include <cmath>
 #include <type_traits>
 #include "Box2D/Common/b2Math.h"
 #include "SFML/System/Vector2.hpp"
+#include "utils/assert.hpp"
 
 namespace Math {
 
@@ -19,7 +20,7 @@ namespace Math {
 		// Initialize with values.
 		Vector2(T _x, T _y) : x(_x), y(_y) {}
 		// Initialize all components with the same value.
-		Vector2(T _val) : x(_val), y(_val) {}
+		explicit Vector2(T _val) : x(_val), y(_val) {}
 
 		// Conversion LibVec -> MathVec
 		Vector2(const sf::Vector2<T>& _orig) : x(_orig.x), y(_orig.y) {}
@@ -32,10 +33,14 @@ namespace Math {
 		template<typename = std::enable_if_t< std::is_floating_point_v<T> >>
 		operator b2Vec2() const { return b2Vec2(x, y); }
 
+		// Common operations
 		T LenSqr() const { return x * x + y * y; }
 		auto Len() const { return std::sqrt(LenSqr()); }
 
-		void Normalize() { T l = Len(); x /= l; y /= l; }
+		void Normalize() { T l = Len(); Assert(l != 0, "Can not normalize a 0-Vector."); x /= l; y /= l; }
+		Vector2<T> Normalized() const { Vector2<T> v(*this); v.Normalize(); return v; }
+		void Rotate(T _angle);
+		Vector2<T> Rotated(T _angle) const { Vector2<T> v(*this); v.Rotate(_angle); return v; }
 
 		// Combined Assignment operators
 		Vector2<T>& operator+=(const Vector2<T>& _rhs) { x += _rhs.x; y += _rhs.y; return *this; }
@@ -51,20 +56,20 @@ namespace Math {
 
 	// Vector x Vector operators
 	template<typename T>
-	inline Vector2<T> operator+(const Vector2<T>& _lhs, const Vector2<T>& _rhs) { return Vector2<T>(_lhs.x + _rhs.x, _lhs.y + _lhs.y); }
+	inline Vector2<T> operator+(const Vector2<T>& _lhs, const Vector2<T>& _rhs) { return Vector2<T>(_lhs.x + _rhs.x, _lhs.y + _rhs.y); }
 
 	template<typename T>
-	inline Vector2<T> operator-(const Vector2<T>& _lhs, const Vector2<T>& _rhs) { return Vector2<T>(_lhs.x - _rhs.x, _lhs.y - _lhs.y); }
+	inline Vector2<T> operator-(const Vector2<T>& _lhs, const Vector2<T>& _rhs) { return Vector2<T>(_lhs.x - _rhs.x, _lhs.y - _rhs.y); }
 
 	template<typename T>
-	inline bool operator==(const Vector2<T>& _lhs, const Vector2<T>& _rhs){ return _lhs.x == _rhs.x && _lhs.y == _lhs.y;}
+	inline bool operator==(const Vector2<T>& _lhs, const Vector2<T>& _rhs){ return _lhs.x == _rhs.x && _lhs.y == _rhs.y;}
 	template<typename T>
-	inline bool operator!=(const Vector2<T>& _lhs, const Vector2<T>& _rhs){ return _lhs.x != _rhs.x && _lhs.y != _lhs.y; }
+	inline bool operator!=(const Vector2<T>& _lhs, const Vector2<T>& _rhs){ return _lhs.x != _rhs.x && _lhs.y != _rhs.y; }
 
 	template<typename T>
 	Vector2<T> operator*(const Vector2<T>& _lhs, const Vector2<T>& _rhs)
 	{
-		return Vector2<T>(_lhs.x * _rhs.x, _lhs.y * _lhs.y);
+		return Vector2<T>(_lhs.x * _rhs.x, _lhs.y * _rhs.y);
 	}
 
 	// Scalar x Vector operators
@@ -100,4 +105,15 @@ namespace Math {
 
 	using Vec2 = Vector2<float>;
 	using Vec2I = Vector2<int>;
+
+	// ******************************************************************** //
+	// long implementations
+	template<typename T>
+	inline void Vector2<T>::Rotate(T _angle)
+	{
+		T cosA = std::cos(_angle);
+		T sinA = std::sin(_angle);
+		x = x * cosA - y * sinA;
+		y = y * cosA + x * sinA;
+	}
 }
