@@ -18,17 +18,16 @@ namespace Math{
 
 	Vec2 Transformation::Transform(Vec2 _vector) const
 	{
-		Vec2 v = _vector * m_scale;
-		v.x = v.x * m_cosR - v.y * m_sinR;
-		v.y = v.y * m_cosR + v.x * m_sinR;
-		return v + m_position;
-
+		const Vec2 v = _vector * m_scale;
+		Vec2 u;
+		u.x = v.x * m_cosR - v.y * m_sinR;
+		u.y = v.y * m_cosR + v.x * m_sinR;
+		return u + m_position;
 	}
 
 	Transformation Transformation::Transform(const Transformation& _other) const
 	{
-		Vec2 off = _other.m_position.Rotated(m_rotation) * m_scale;
-		return Transformation(m_position + off, m_rotation + _other.m_rotation, m_scale * _other.m_scale);
+		return Transformation(Transform(_other.m_position), m_rotation + _other.m_rotation, m_scale * _other.m_scale);
 	}
 
 	void Transformation::UpdateMatrix()

@@ -113,7 +113,9 @@ namespace Math {
 	{
 		T cosA = std::cos(_angle);
 		T sinA = std::sin(_angle);
-		x = x * cosA - y * sinA;
-		y = y * cosA + x * sinA;
+		T nx = x * cosA - y * sinA;
+		T ny = y * cosA + x * sinA;
+		x = nx;
+		y = ny;
 	}
 }

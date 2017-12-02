@@ -1,6 +1,7 @@
 #include "spriteomponent.hpp"
 #include "gameplay/core/actor.hpp"
 #include "SFML/Graphics.hpp"
+#include "math/helpers.hpp"
 
 namespace Game {
 
@@ -19,7 +20,7 @@ namespace Game {
 		
 		m_sprite.setPosition(transform.GetPosition());
 		m_sprite.setScale(transform.GetScale());
-		m_sprite.setRotation(transform.GetRotation());
+		m_sprite.setRotation(Math::ToDegree(transform.GetRotation()));
 
 		_window.draw(m_sprite);
 	}

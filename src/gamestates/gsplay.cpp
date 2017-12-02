@@ -14,6 +14,7 @@ namespace Game {
 	{
 		actor = new SingleComponentActor<SpriteComponent>(Vec2(), Resources::Load<sf::Texture>("pixel"));
 		actor->SetScale(Vec2(100.f));
+		actor->GetComponent().SetPosition(Math::Vec2(0.5f, 0.f));
 		m_scene.Add(*actor);
 	}
 
@@ -22,7 +23,7 @@ namespace Game {
 		m_scene.Process(_deltaTime);
 
 		actor->SetPosition(actor->GetPosition() + Vec2(_deltaTime * 10.f));
-		actor->SetRotation(actor->GetRotation() + _deltaTime * 16.f);
+		actor->SetRotation(actor->GetRotation() + _deltaTime);
 
 		// should probably happen after the draw
 		m_scene.CleanUp();
