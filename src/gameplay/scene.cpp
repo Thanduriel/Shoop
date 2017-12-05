@@ -5,12 +5,21 @@
 #include "core/component.hpp"
 #include "gameplay/elements/factory.hpp"
 #include "utils/assert.hpp"
+#include "gameplay/elements/physicscomponent.hpp"
 
 namespace Game {
 
+	Scene::Scene()
+		: m_physicsWorld(Math::Vec2(0.f, -9.81f))
+	{
+		Details::PhysicsWorldWrapper::m_world = &m_physicsWorld;
+	}
+
 	// destructor is defined here so that unique_ptr can find Actor::~Actor
 	Scene::~Scene()
-	{}
+	{
+		Details::PhysicsWorldWrapper::m_world = nullptr;
+	}
 
 	void Scene::Add(Actor& _actor)
 	{
@@ -24,6 +33,8 @@ namespace Game {
 	{
 		for (ProcessComponent& component : m_processComponents)
 			component.Process(_deltaTime);
+
+		m_physicsWorld.Step(_deltaTime, 8, 8);
 	}
 
 	void Scene::Draw(sf::RenderWindow& _window) const
@@ -79,7 +90,8 @@ namespace Game {
 		switch (_component.GetType())
 		{
 		case Component::Type::Process: 
-			m_processComponents.emplace_back(static_cast<ProcessComponent&>(_component));
+			if(static_cast<ProcessComponent&>(_component).CanTick())
+				m_processComponents.emplace_back(static_cast<ProcessComponent&>(_component));
 			break;
 		case Component::Type::Draw:
 			m_drawComponents.emplace_back(static_cast<DrawComponent&>(_component));

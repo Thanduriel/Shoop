@@ -8,6 +8,11 @@ Shoop::Shoop(int _sizeX, int _sizeY)
 {
 	// actually link something from Box2D
 	b2World world(b2Vec2(0.f, -9.81f));
+
+	sf::View view = m_window.getDefaultView();
+	view.rotate(180.f);
+	m_window.setView(view);
+
 }
 
 // explicit definition here for the destructor of GameState

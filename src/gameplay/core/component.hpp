@@ -40,12 +40,17 @@ namespace Game {
 	class ProcessComponent : public Component
 	{
 	public:
-		ProcessComponent(Actor& _actor) : Component(_actor, Type::Process) {}
+		ProcessComponent(Actor& _actor, bool _canTick = true) : Component(_actor, Type::Process),m_canTick(_canTick) {}
 
 		virtual void Process(float _deltaTime) = 0;
 
 		void SetActive(bool _active) { m_isActive = _active; }
 		bool IsActive() const { return m_isActive; }
+
+		bool CanTick() const { return m_canTick; }
+	protected:
+		// when set to false at time of register, this Components Process is never called.
+		const bool m_canTick;
 	private:
 		bool m_isActive;
 	};

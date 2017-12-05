@@ -3,18 +3,19 @@
 // test related
 #include "gameplay/elements/spriteomponent.hpp"
 #include "resources.hpp"
+#include "gameplay/elements/player/sheep.hpp"
 
 namespace Game {
 
 	using namespace Math;
 
-	SpriteActor* actor;
+	Actor* actor;
 
 	GSPlay::GSPlay()
 	{
-		actor = new SingleComponentActor<SpriteComponent>(Vec2(), Resources::Load<sf::Texture>("pixel"));
-		actor->SetScale(Vec2(100.f));
-		actor->GetComponent().SetPosition(Math::Vec2(0.5f, 0.f));
+		actor = new Sheep(Vec2(300.f, 250.f));
+	//	actor->SetScale(Vec2(100.f));
+	//	actor->GetComponent().SetPosition(Math::Vec2(0.5f, 0.f));
 		m_scene.Add(*actor);
 	}
 

@@ -4,6 +4,8 @@
 #include <memory>
 #include <functional>
 
+#include "Box2D/Box2D.h"
+
 namespace sf {
 	class RenderWindow;
 }
@@ -22,6 +24,7 @@ namespace Game {
 	class Scene
 	{
 	public:
+		Scene();
 		~Scene();
 
 		// Takes ownership of a dynamically allocated _actor.
@@ -41,5 +44,7 @@ namespace Game {
 		std::vector<std::reference_wrapper<DrawComponent>> m_drawComponents;
 		std::vector<std::reference_wrapper<ProcessComponent>> m_processComponents;
 		std::vector<std::reference_wrapper<FactoryComponent>> m_factoryComponents;
+
+		b2World m_physicsWorld;
 	};
 }
