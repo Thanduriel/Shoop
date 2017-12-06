@@ -24,8 +24,8 @@ namespace Game {
 	void Scene::Add(Actor& _actor)
 	{
 		m_actors.emplace_back(&_actor);
-		for (auto& component : _actor.GetComponents())
-			Register(component);
+		for (auto component : _actor.GetComponents())
+			Register(*component);
 	}
 
 	// **************************************************************** //

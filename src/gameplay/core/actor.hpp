@@ -11,7 +11,7 @@ namespace Game {
 	{
 	public:
 		Actor(Math::Vec2 _position = Math::Vec2{}, float _rotation = 0.f, Math::Vec2 _scale = Math::Vec2(1.f));
-		virtual ~Actor() {}
+		virtual ~Actor();
 
 		Actor(Actor&&) = delete;
 		Actor& operator=(Actor&&) = delete;
@@ -21,10 +21,10 @@ namespace Game {
 		void Destroy() { m_isDestroyed = true; }
 		bool IsDestroyed() const { return m_isDestroyed; }
 
-		std::vector < std::reference_wrapper<Component>>& GetComponents() { return m_components; }
+		std::vector<Component*>& GetComponents() { return m_components; }
 
 	private:
 		bool m_isDestroyed;
-		std::vector < std::reference_wrapper<Component>> m_components;
+		std::vector<Component*> m_components;
 	};
 }

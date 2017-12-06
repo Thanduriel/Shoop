@@ -21,6 +21,7 @@ namespace Game {
 		};
 
 		Component(Actor& _actor, Type _type);
+		~Component();
 		
 		// A component always requires an owning Actor.
 		// Reasonable copy constructors take an Actor&.
