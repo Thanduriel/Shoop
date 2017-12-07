@@ -18,7 +18,9 @@ namespace Game {
 		using namespace Math;
 		const Transformation transform = m_actor.Transform(*this);
 		
-		m_sprite.setPosition(transform.GetPosition());
+		Math::Vec2 p = transform.GetPosition();
+		p.y = _window.getSize().y - p.y;
+		m_sprite.setPosition(p);
 		m_sprite.setScale(transform.GetScale());
 		m_sprite.setRotation(Math::ToDegree(transform.GetRotation()));
 

@@ -2,6 +2,7 @@
 #include "Box2D/Box2D.h"
 #include "gamestates/gsplay.hpp"
 #include "resources.hpp"
+#include "SFML/System.hpp"
 
 Shoop::Shoop(int _sizeX, int _sizeY)
 	: m_window(sf::VideoMode(_sizeX, _sizeY), "shoop")
@@ -10,9 +11,8 @@ Shoop::Shoop(int _sizeX, int _sizeY)
 	b2World world(b2Vec2(0.f, -9.81f));
 
 	sf::View view = m_window.getDefaultView();
-	view.rotate(180.f);
+//	view.setCenter(view.getCenter() - sf::Vector2f(0.f, m_window.getSize().y));
 	m_window.setView(view);
-
 }
 
 // explicit definition here for the destructor of GameState
@@ -48,7 +48,8 @@ void Shoop::Run()
 		auto newState = currentState->GetNewState();
 		if (currentState->IsFinished()) m_states.pop_back();
 		if (newState) m_states.emplace_back(std::move(newState));
-
+		if (m_states.size() && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape)) 
+			m_states.pop_back();
 		// currentState could be invalid at this point, but the address is still correct
 		if (m_states.size() && currentState != m_states.back().get()) m_states.back()->OnBegin();
 

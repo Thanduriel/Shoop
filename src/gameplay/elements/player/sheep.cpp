@@ -13,6 +13,7 @@ namespace Game {
 		b2BodyDef def;
 		def.position = _position;
 		def.type = b2BodyType::b2_dynamicBody;
+		def.active = false;
 		
 		b2CircleShape wheelShape;
 		wheelShape.m_radius = 0.3f;

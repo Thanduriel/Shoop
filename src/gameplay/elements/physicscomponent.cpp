@@ -19,7 +19,10 @@ namespace Game {
 	PhysicsBodyComponent::~PhysicsBodyComponent()
 	{
 		Assert(m_body, "An uninitialized body component is being destroyed.");
-		Details::PhysicsWorldWrapper::m_world->DestroyBody(m_body);
+		// when the scene is destroyed m_world is set to nullptr and all its objects
+		// are destroyed at once.
+		if(Details::PhysicsWorldWrapper::m_world)
+			Details::PhysicsWorldWrapper::m_world->DestroyBody(m_body);
 	}
 
 	void PhysicsBodyComponent::Process(float _deltaTime)
@@ -52,7 +55,8 @@ namespace Game {
 	PhysicsJointComponent::~PhysicsJointComponent()
 	{
 		Assert(m_joint, "An uninitialized joint component is being destroyed.");
-		Details::PhysicsWorldWrapper::m_world->DestroyJoint(m_joint);
+		if (Details::PhysicsWorldWrapper::m_world)
+			Details::PhysicsWorldWrapper::m_world->DestroyJoint(m_joint);
 	}
 
 	b2Joint& PhysicsJointComponent::Create(const b2JointDef& _def)

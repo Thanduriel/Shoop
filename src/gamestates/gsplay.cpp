@@ -13,7 +13,7 @@ namespace Game {
 
 	GSPlay::GSPlay()
 	{
-		actor = new Sheep(Vec2(300.f, 250.f));
+		actor = new Sheep(Vec2(100.f, 0.f));
 	//	actor->SetScale(Vec2(100.f));
 	//	actor->GetComponent().SetPosition(Math::Vec2(0.5f, 0.f));
 		m_scene.Add(*actor);
