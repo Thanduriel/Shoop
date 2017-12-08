@@ -21,17 +21,30 @@ namespace Math {
 		Vector2(T _x, T _y) : x(_x), y(_y) {}
 		// Initialize all components with the same value.
 		explicit Vector2(T _val) : x(_val), y(_val) {}
+		// conversion from different typed vector
+		template<typename U, typename = std::enable_if_t< !std::is_same_v<T, U> >>
+		explicit Vector2(Vector2<U> _orig) : x(static_cast<T>(_orig.x)), y(static_cast<T>(_orig.y)) {}
 
 		// Conversion LibVec -> MathVec
 		Vector2(const sf::Vector2<T>& _orig) : x(_orig.x), y(_orig.y) {}
+		// for different base types only explicit conversion
+		template<typename U, typename = std::enable_if_t< !std::is_same_v<T,U> >>
+		explicit Vector2(const sf::Vector2<U>& _orig) : x(static_cast<T>(_orig.x)), y(static_cast<T>(_orig.y)) {}
 		// Box2D only has a floating point vector.
 		template<typename = std::enable_if_t< std::is_floating_point_v<T> >>
 		Vector2(const b2Vec2& _orig) : x(_orig.x), y(_orig.y) {}
 		
+		// Casts to other vector types
+		template<typename U, typename = std::enable_if_t< !std::is_same_v<T, U> >>
+		explicit operator Vector2<U>() const { return sf::Vector2(static_cast<U>(x), static_cast<U>(y)); }
+		
 		// Conversion MathVec -> LibVec 
-		operator sf::Vector2<T>() const { return sf::Vector2<T>(x, y); }
+		operator sf::Vector2<T>() const								{ return sf::Vector2<T>(x, y); }
+		template<typename U, typename = std::enable_if_t< !std::is_same_v<T, U> >>
+		explicit operator sf::Vector2<U>() const					{ return sf::Vector2(static_cast<U>(x), static_cast<U>(y)); }
+		
 		template<typename = std::enable_if_t< std::is_floating_point_v<T> >>
-		operator b2Vec2() const { return b2Vec2(x, y); }
+		operator b2Vec2() const										{ return b2Vec2(x, y); }
 
 		// Common operations
 		T LenSqr() const { return x * x + y * y; }
