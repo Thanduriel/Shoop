@@ -2,6 +2,7 @@
 #include "gameplay/core/actor.hpp"
 #include "SFML/Graphics.hpp"
 #include "math/helpers.hpp"
+#include "graphics/device.hpp"
 
 namespace Game {
 
@@ -19,12 +20,11 @@ namespace Game {
 		const Transformation transform = m_actor.Transform(*this);
 		
 		Math::Vec2 p = transform.GetPosition();
-		p.y = _window.getSize().y - p.y;
-		m_sprite.setPosition(p);
+		m_sprite.setPosition(Graphics::Device::ToScreenSpace(p));
 		m_sprite.setScale(transform.GetScale());
 		m_sprite.setRotation(Math::ToDegree(transform.GetRotation()));
 
-		_window.draw(m_sprite);
+	//	_window.draw(m_sprite);
 	}
 
 

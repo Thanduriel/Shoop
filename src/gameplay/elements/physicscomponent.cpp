@@ -2,8 +2,14 @@
 #include "gameplay/core/actor.hpp"
 #include "Box2D/Box2D.h"
 #include "utils/assert.hpp"
+#include "SFML/Graphics.hpp"
+#include "graphics/device.hpp"
 
 namespace Game {
+
+	using namespace Math;
+
+	b2World* Details::PhysicsWorldWrapper::m_world;
 
 	PhysicsBodyComponent::PhysicsBodyComponent(Actor& _actor, bool _isPrimary)
 		: ProcessComponent(_actor, _isPrimary),
@@ -67,5 +73,48 @@ namespace Game {
 		return *m_joint;
 	}
 
-	b2World* Details::PhysicsWorldWrapper::m_world;
+
+
+	// ****************************************************************** //
+	PhysicsDebugComponent::PhysicsDebugComponent(Actor& _actor, const PhysicsBodyComponent& _component)
+		: DrawComponent(_actor),
+		m_target(_component)
+	{
+
+	}
+
+	void PhysicsDebugComponent::Draw(sf::RenderWindow& _window)
+	{
+		const b2Body& body = m_target.Get();
+		const b2Fixture& fixture = body.GetFixtureList()[0];
+		const b2Shape& physShape = *fixture.GetShape();
+		switch (fixture.GetShape()->m_type)
+		{
+		case b2Shape::e_circle:
+		{
+			sf::CircleShape shape(fixture.GetShape()->m_radius);
+			shape.setPosition(Graphics::Device::ToScreenSpace(body.GetPosition()));
+			shape.setOrigin(Vec2(shape.getRadius()));
+			_window.draw(shape);
+			break;
+		}
+		case b2Shape::e_polygon:
+		{
+			const b2PolygonShape& polyShape = static_cast<const b2PolygonShape&>(physShape);
+			sf::ConvexShape shape(polyShape.m_count);
+			for (int i = 0; i < polyShape.m_count; ++i)
+				shape.setPoint(i, Vec2(polyShape.m_vertices[i]));
+			shape.setPosition(Graphics::Device::ToScreenSpace(body.GetPosition()));
+			shape.setOrigin(Vec2(polyShape.m_centroid));
+			_window.draw(shape);
+			break;
+		}
+		default:
+			Assert(false, "This shape type is not supported for debug draw.");
+		}
+		
+		
+		
+	}
+
 }

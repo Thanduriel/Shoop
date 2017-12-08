@@ -53,6 +53,16 @@ namespace Game {
 		b2Joint* m_joint;
 	};
 
+	class PhysicsDebugComponent : public DrawComponent
+	{
+	public:
+		PhysicsDebugComponent(Actor& _actor, const PhysicsBodyComponent& _component);
+
+		void Draw(sf::RenderWindow& _window) override;
+
+	private:
+		const PhysicsBodyComponent& m_target;
+	};
 
 	class Scene;
 
