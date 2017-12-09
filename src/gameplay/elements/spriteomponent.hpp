@@ -10,11 +10,14 @@ namespace Game {
 	class SpriteComponent : public DrawComponent, public Math::Transformation
 	{
 	public:
-		SpriteComponent(Actor& _actor, const sf::Texture& _texture, Math::Vec2 _origin = Math::Vec2(0.5f));
+		SpriteComponent(Actor& _actor, const sf::Texture& _texture, 
+			Math::Vec2 _size,
+			Math::Vec2 _origin = Math::Vec2(0.5f));
 
 		void Draw(sf::RenderWindow& _window) override;
 	private:
 		sf::Sprite m_sprite;
+		Math::Vec2 m_baseScale;
 	};
 
 	using SpriteActor = SingleComponentActor<SpriteComponent>;

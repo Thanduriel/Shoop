@@ -80,10 +80,10 @@ namespace Math {
 	inline bool operator!=(const Vector2<T>& _lhs, const Vector2<T>& _rhs){ return _lhs.x != _rhs.x && _lhs.y != _rhs.y; }
 
 	template<typename T>
-	Vector2<T> operator*(const Vector2<T>& _lhs, const Vector2<T>& _rhs)
-	{
-		return Vector2<T>(_lhs.x * _rhs.x, _lhs.y * _rhs.y);
-	}
+	Vector2<T> operator*(const Vector2<T>& _lhs, const Vector2<T>& _rhs) { return Vector2<T>(_lhs.x * _rhs.x, _lhs.y * _rhs.y); }
+
+	template<typename T>
+	Vector2<T> operator/(const Vector2<T>& _lhs, const Vector2<T>& _rhs){ return Vector2<T>(_lhs.x / _rhs.x, _lhs.y / _rhs.y); }
 
 	// Scalar x Vector operators
 	template<typename T>

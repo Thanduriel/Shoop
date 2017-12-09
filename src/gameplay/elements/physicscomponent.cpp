@@ -77,7 +77,7 @@ namespace Game {
 
 	// ****************************************************************** //
 	PhysicsDebugComponent::PhysicsDebugComponent(Actor& _actor, const PhysicsBodyComponent& _component)
-		: DrawComponent(_actor),
+		: DrawComponent(_actor, DrawingOrder::Debug),
 		m_target(_component)
 	{
 

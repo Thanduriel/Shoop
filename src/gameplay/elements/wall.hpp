@@ -11,7 +11,6 @@ namespace Game {
 		Wall(Math::Vec2 _position, Math::Vec2 _size);
 
 	protected:
-		PhysicsBodyComponent m_body;
-		PhysicsDebugComponent m_debugBody;
+		PhysicsBodyComponentD m_body;
 	};
 }

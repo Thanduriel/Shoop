@@ -59,9 +59,22 @@ namespace Game {
 	class DrawComponent : public Component
 	{
 	public:
-		DrawComponent(Actor& _actor) : Component(_actor, Type::Draw) {}
+		enum struct DrawingOrder
+		{
+			Background,
+			Middle,
+			Front,
+			Debug,
+			COUNT
+		};
+
+		DrawComponent(Actor& _actor, DrawingOrder _order = DrawingOrder::Middle) : Component(_actor, Type::Draw), m_drawingOrder(_order) {}
 
 		virtual void Draw(sf::RenderWindow&) = 0;
+
+		DrawingOrder GetDrawingOrder() const { return m_drawingOrder; }
+	private:
+		const DrawingOrder m_drawingOrder;
 	};
 
 

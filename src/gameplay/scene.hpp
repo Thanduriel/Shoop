@@ -3,7 +3,9 @@
 #include <vector>
 #include <memory>
 #include <functional>
+#include <array>
 
+#include "core/component.hpp"
 #include "Box2D/Box2D.h"
 
 namespace sf {
@@ -13,9 +15,6 @@ namespace sf {
 namespace Game {
 
 	class Actor;
-	class Component;
-	class DrawComponent;
-	class ProcessComponent;
 	class FactoryComponent;
 
 	/* Scene ******************************
@@ -41,7 +40,7 @@ namespace Game {
 		void Register(Component& _component);
 
 		std::vector < std::unique_ptr<Actor>> m_actors;
-		std::vector<std::reference_wrapper<DrawComponent>> m_drawComponents;
+		std::array<std::vector<std::reference_wrapper<DrawComponent>>, static_cast<size_t>(DrawComponent::DrawingOrder::COUNT)> m_drawComponents;
 		std::vector<std::reference_wrapper<ProcessComponent>> m_processComponents;
 		std::vector<std::reference_wrapper<FactoryComponent>> m_factoryComponents;
 

@@ -53,6 +53,7 @@ namespace Game {
 		b2Joint* m_joint;
 	};
 
+	// Component that draws a shape representative to the bodies first shape.
 	class PhysicsDebugComponent : public DrawComponent
 	{
 	public:
@@ -62,6 +63,20 @@ namespace Game {
 
 	private:
 		const PhysicsBodyComponent& m_target;
+	};
+
+	// Helper to simplify debug usage.
+	// Just use this type instead of a PhysicsBodyComponent
+	class PhysicsBodyComponentD : public PhysicsBodyComponent
+	{
+	public:
+		template<typename... Args>
+		PhysicsBodyComponentD(Actor& _actor, Args&&... _args)
+			: PhysicsBodyComponent(_actor, std::forward<Args>(_args)...),
+			m_debugDraw(_actor, *this)
+		{}
+	private:
+		PhysicsDebugComponent m_debugDraw;
 	};
 
 	class Scene;

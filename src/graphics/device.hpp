@@ -21,6 +21,7 @@ namespace Graphics {
 
 		// Transforms a screen position to world space
 		//Math::Vec2 ToWorldSpace(Math::Vec2 _position);
+		static float GetWorldToScreenFactor();
 
 		static sf::RenderWindow& GetWindow() { return *m_window; }
 		static Math::Vec2 GetSizeWorldSpace();

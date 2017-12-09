@@ -5,8 +5,7 @@ namespace Game {
 
 	Wall::Wall(Math::Vec2 _position, Math::Vec2 _size)
 		: Actor(_position),
-		m_body(THISACTOR),
-		m_debugBody(THISACTOR, m_body)
+		m_body(THISACTOR)
 	{
 		b2BodyDef def;
 		def.position = _position;

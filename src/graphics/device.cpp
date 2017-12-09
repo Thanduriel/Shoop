@@ -27,6 +27,11 @@ namespace Graphics {
 		return _position;
 	}
 
+	float Device::GetWorldToScreenFactor()
+	{
+		return WORLD_TO_SCREEN;
+	}
+
 	Math::Vec2 Device::GetSizeWorldSpace()
 	{
 		return Math::Vec2(m_window->getSize()) / WORLD_TO_SCREEN;

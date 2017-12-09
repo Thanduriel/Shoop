@@ -39,8 +39,9 @@ namespace Game {
 
 	void Scene::Draw(sf::RenderWindow& _window) const
 	{
-		for (auto& component : m_drawComponents)
-			component.get().Draw(_window);
+		for (auto& components : m_drawComponents)
+			for(auto component : components)
+				component.get().Draw(_window);
 	}
 
 	// **************************************************************** //
@@ -58,7 +59,7 @@ namespace Game {
 	{
 		// unregister components
 		RemoveDestroyed(m_processComponents);
-		RemoveDestroyed(m_drawComponents);
+		for(auto& components : m_drawComponents) RemoveDestroyed(components);
 
 		// actual destruction is last
 		auto it = std::remove_if(m_actors.begin(), m_actors.end(), [](const std::unique_ptr<Actor>& _actor)
@@ -94,8 +95,11 @@ namespace Game {
 				m_processComponents.emplace_back(static_cast<ProcessComponent&>(_component));
 			break;
 		case Component::Type::Draw:
-			m_drawComponents.emplace_back(static_cast<DrawComponent&>(_component));
+		{
+			DrawComponent& component = static_cast<DrawComponent&>(_component);
+			m_drawComponents[static_cast<size_t>(component.GetDrawingOrder())].emplace_back(component);
 			break;
+		}
 		case Component::Type::Factory:
 			m_factoryComponents.emplace_back(static_cast<FactoryComponent&>(_component));
 			break;

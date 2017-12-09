@@ -14,6 +14,5 @@ namespace Game {
 	private:
 		SpriteComponent m_wheelSprite;
 		PhysicsBodyComponent m_wheelBody;
-		PhysicsDebugComponent m_debugSprite;
 	};
 }

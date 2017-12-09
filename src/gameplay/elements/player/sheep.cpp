@@ -6,11 +6,9 @@ namespace Game {
 
 	Sheep::Sheep(Math::Vec2 _position)
 		: Actor(_position),
-		m_wheelSprite(THISACTOR, Resources::Load<sf::Texture>("wheel")),
-		m_wheelBody(THISACTOR, true),
-		m_debugSprite(THISACTOR, m_wheelBody)
+		m_wheelSprite(THISACTOR, Resources::Load<sf::Texture>("wheel"), Math::Vec2(0.6f)),
+		m_wheelBody(THISACTOR, true)
 	{
-		m_wheelSprite.SetScale(Math::Vec2(0.5f));
 		b2BodyDef def;
 		def.position = _position;
 		def.type = b2BodyType::b2_dynamicBody;
