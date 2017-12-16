@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include "math/transformation.hpp"
 #include "gameplay/core/component.hpp"
 
 class b2World;
@@ -16,10 +17,10 @@ namespace Game {
 	{
 	public:
 		/* Creates an empty PhysicsBodyComponent that has to be initialized with Create().
-		 * @param _isPrimary The primary physics body of an Actor determines its orientation and position.
+		 * @param _overwriteTransform The given transformation is updated with the current 
+		 *			orientation of this body on process.
 		 */
-		PhysicsBodyComponent(Actor& _actor, bool _isPrimary = false);
-		PhysicsBodyComponent(Actor& _actor, const b2BodyDef& _def, bool _isPrimary = false);
+		PhysicsBodyComponent(Actor& _actor, Math::Transformation* _overwriteTransform = nullptr);
 		~PhysicsBodyComponent();
 
 		void Process(float _deltaTime);
@@ -34,6 +35,7 @@ namespace Game {
 		b2Body& Get() { return *m_body; }
 	private:
 		b2Body* m_body;
+		Math::Transformation* m_overwriteTransform;
 	};
 
 	// Wrapper for a b2 physics joint.
@@ -42,7 +44,6 @@ namespace Game {
 	{
 	public:
 		PhysicsJointComponent(Actor& _actor);
-		PhysicsJointComponent(Actor& _actor, const b2JointDef& _def);
 		~PhysicsJointComponent();
 
 		void Process(float _deltaTime) {}

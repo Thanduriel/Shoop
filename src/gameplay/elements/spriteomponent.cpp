@@ -17,7 +17,7 @@ namespace Game {
 
 		Vec2 ratio = Device::GetWorldToScreenFactor() * _size / size;
 		m_baseScale = ratio / Device::GetWorldToScreenFactor();
-		m_sprite.setScale(Vec2(1.f/50.f));
+	//	m_sprite.setScale(m_baseScale);
 
 		m_sprite.setOrigin(Math::Vec2(size.x * _origin.x, size.y * _origin.y));
 	}
@@ -35,5 +35,17 @@ namespace Game {
 		_window.draw(m_sprite);
 	}
 
+	void GlobalSpriteComponent::Draw(sf::RenderWindow& _window)
+	{
+		using namespace Math;
+		const Transformation& transform = *this;
+
+		Math::Vec2 p = transform.GetPosition();
+		m_sprite.setPosition(Device::ToScreenSpace(p));
+		m_sprite.setScale(m_baseScale * transform.GetScale());
+		m_sprite.setRotation(-Math::ToDegree(transform.GetRotation()));
+
+		_window.draw(m_sprite);
+	}
 
 }

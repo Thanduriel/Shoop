@@ -10,7 +10,7 @@
 namespace Game {
 
 	Scene::Scene()
-		: m_physicsWorld(Math::Vec2(-0.5f, -9.81f))
+		: m_physicsWorld(Math::Vec2(-2.65f, -9.81f))
 	{
 		Details::PhysicsWorldWrapper::m_world = &m_physicsWorld;
 	}
@@ -31,10 +31,10 @@ namespace Game {
 	// **************************************************************** //
 	void Scene::Process(float _deltaTime)
 	{
+		m_physicsWorld.Step(_deltaTime, 10, 8);
+
 		for (ProcessComponent& component : m_processComponents)
 			component.Process(_deltaTime);
-
-		m_physicsWorld.Step(_deltaTime, 8, 8);
 	}
 
 	void Scene::Draw(sf::RenderWindow& _window) const

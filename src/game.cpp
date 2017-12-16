@@ -21,9 +21,9 @@ Shoop::~Shoop()
 
 void Shoop::Run()
 {
-	sf::Clock clock;
-
 	m_states.emplace_back(new Game::GSPlay());
+
+	sf::Clock clock;
 
 	while (m_states.size() && Device::GetWindow().isOpen())
 	{
@@ -36,13 +36,14 @@ void Shoop::Run()
 		}
 
 		sf::Time elapsed = clock.restart();
-		// temporary frame limiter; todo do better timing with frame cap
-		sf::sleep(sf::milliseconds(2));
+		Device::GetWindow().setTitle(std::to_string(elapsed.asSeconds()));;
 
-		Device::GetWindow().clear(sf::Color(100, 149, 237));
 		Game::GameState* currentState = m_states.back().get();
 		currentState->Process(elapsed.asSeconds());
+		
+		Device::GetWindow().clear(sf::Color(100, 149, 237));
 		currentState->Draw(Device::GetWindow());
+		Device::GetWindow().display();
 
 		auto newState = currentState->GetNewState();
 		if (currentState->IsFinished()) m_states.pop_back();
@@ -52,6 +53,7 @@ void Shoop::Run()
 		// currentState could be invalid at this point, but the address is still correct
 		if (m_states.size() && currentState != m_states.back().get()) m_states.back()->OnBegin();
 
-		Device::GetWindow().display();
+		// temporary frame limiter; todo do better timing with frame cap
+		sf::sleep(sf::milliseconds(8));
 	}
 }

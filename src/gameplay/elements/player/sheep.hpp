@@ -12,8 +12,9 @@ namespace Game {
 		Sheep(Math::Vec2 _position);
 
 	private:
-		SpriteComponent m_wheelSprite;
-		PhysicsBodyComponentD m_wheel;
+		GlobalSpriteComponent m_wheelSprite;
+		PhysicsBodyComponent m_wheel;
 		PhysicsBodyComponentD m_body;
+		PhysicsJointComponent m_joint;
 	};
 }

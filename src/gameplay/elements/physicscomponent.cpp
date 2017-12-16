@@ -12,16 +12,11 @@ namespace Game {
 
 	b2World* Details::PhysicsWorldWrapper::m_world;
 
-	PhysicsBodyComponent::PhysicsBodyComponent(Actor& _actor, bool _isPrimary)
-		: ProcessComponent(_actor, _isPrimary),
-		m_body(nullptr)
+	PhysicsBodyComponent::PhysicsBodyComponent(Actor& _actor, Math::Transformation* _overwriteTransform)
+		: ProcessComponent(_actor, _overwriteTransform),
+		m_body(nullptr),
+		m_overwriteTransform(_overwriteTransform)
 	{}
-
-	PhysicsBodyComponent::PhysicsBodyComponent(Actor& _actor, const b2BodyDef& _def, bool _isPrimary)
-		: ProcessComponent(_actor, _isPrimary)
-	{
-	//	Create(_def);
-	}
 
 	PhysicsBodyComponent::~PhysicsBodyComponent()
 	{
@@ -34,8 +29,9 @@ namespace Game {
 
 	void PhysicsBodyComponent::Process(float _deltaTime)
 	{
-		m_actor.SetPosition(m_body->GetPosition());
-		m_actor.SetRotation(m_body->GetAngle());
+		// process is only called when initialized with a transformation
+		m_overwriteTransform->SetPosition(m_body->GetPosition());
+		m_overwriteTransform->SetRotation(m_body->GetAngle());
 	}
 
 	b2Body& PhysicsBodyComponent::Create(const b2BodyDef& _def, const b2FixtureDef& _fixtureDef)
@@ -62,12 +58,6 @@ namespace Game {
 		: ProcessComponent(_actor, false),
 		m_joint(nullptr)
 	{}
-
-	PhysicsJointComponent::PhysicsJointComponent(Actor& _actor, const b2JointDef& _def)
-		: ProcessComponent(_actor, false)
-	{
-		Create(_def);
-	}
 
 	PhysicsJointComponent::~PhysicsJointComponent()
 	{

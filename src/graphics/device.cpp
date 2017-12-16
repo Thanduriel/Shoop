@@ -5,7 +5,7 @@ namespace Graphics {
 
 	sf::RenderWindow* Device::m_window;
 
-	const float WORLD_TO_SCREEN = 50.f;
+	const float WORLD_TO_SCREEN = 70.f;
 
 	void Device::Init(int _sizeX, int _sizeY)
 	{
