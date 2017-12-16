@@ -13,6 +13,7 @@ namespace Game {
 
 	private:
 		SpriteComponent m_wheelSprite;
-		PhysicsBodyComponent m_wheelBody;
+		PhysicsBodyComponentD m_wheel;
+		PhysicsBodyComponentD m_body;
 	};
 }

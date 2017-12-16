@@ -4,6 +4,7 @@
 #include "utils/assert.hpp"
 #include "SFML/Graphics.hpp"
 #include "graphics/device.hpp"
+#include "math/helpers.hpp"
 
 namespace Game {
 
@@ -42,6 +43,16 @@ namespace Game {
 		Assert(!m_body, "A body should only be created once per component.");
 		m_body = Details::PhysicsWorldWrapper::m_world->CreateBody(&_def);
 		m_body->CreateFixture(&_fixtureDef);
+
+		return *m_body;
+	}
+
+	b2Body& PhysicsBodyComponent::Create(const b2BodyDef& _def, const std::vector<b2FixtureDef*>& _fixtureDefs)
+	{
+		Assert(!m_body, "A body should only be created once per component.");
+		m_body = Details::PhysicsWorldWrapper::m_world->CreateBody(&_def);
+		for(b2FixtureDef* fixture : _fixtureDefs)
+			m_body->CreateFixture(fixture);
 
 		return *m_body;
 	}
@@ -86,32 +97,39 @@ namespace Game {
 	void PhysicsDebugComponent::Draw(sf::RenderWindow& _window)
 	{
 		const b2Body& body = m_target.Get();
-		const b2Fixture& fixture = body.GetFixtureList()[0];
-		const b2Shape& physShape = *fixture.GetShape();
-		switch (fixture.GetShape()->m_type)
-		{
-		case b2Shape::e_circle:
-		{
-			sf::CircleShape shape(fixture.GetShape()->m_radius);
-			shape.setPosition(Graphics::Device::ToScreenSpace(body.GetPosition()));
-			shape.setOrigin(Vec2(shape.getRadius()));
-			_window.draw(shape);
-			break;
-		}
-		case b2Shape::e_polygon:
-		{
-			const b2PolygonShape& polyShape = static_cast<const b2PolygonShape&>(physShape);
-			sf::ConvexShape shape(polyShape.m_count);
-			for (int i = 0; i < polyShape.m_count; ++i)
-				shape.setPoint(i, Vec2(polyShape.m_vertices[i]));
-			shape.setPosition(Graphics::Device::ToScreenSpace(body.GetPosition()));
-			shape.setOrigin(Vec2(polyShape.m_centroid));
-			_window.draw(shape);
-			break;
-		}
-		default:
-			Assert(false, "This shape type is not supported for debug draw.");
-		}
+		const b2Fixture* fixture = body.GetFixtureList();
+
+		do {
+			const b2Shape& physShape = *fixture->GetShape();
+			switch (fixture->GetShape()->m_type)
+			{
+			case b2Shape::e_circle:
+			{
+				const b2CircleShape& circleShape = static_cast<const b2CircleShape&>(physShape);
+				sf::CircleShape shape(fixture->GetShape()->m_radius);
+				shape.setPosition(Graphics::Device::ToScreenSpace(body.GetPosition() 
+					+ b2Mul(body.GetTransform().q, circleShape.m_p)));
+				shape.setOrigin(Vec2(shape.getRadius()));
+				_window.draw(shape);
+				
+				break;
+			}
+			case b2Shape::e_polygon:
+			{
+				const b2PolygonShape& polyShape = static_cast<const b2PolygonShape&>(physShape);
+				sf::ConvexShape shape(polyShape.m_count);
+				for (int i = 0; i < polyShape.m_count; ++i)
+					shape.setPoint(i, Vec2(polyShape.m_vertices[i]));
+				shape.setPosition(Graphics::Device::ToScreenSpace(body.GetPosition()));
+				shape.setOrigin(Vec2(polyShape.m_centroid));
+				shape.setRotation(-Math::ToDegree(body.GetTransform().q.GetAngle()));
+				_window.draw(shape);
+				break;
+			}
+			default:
+				Assert(false, "This shape type is not supported for debug draw.");
+			}
+		} while (fixture = fixture->GetNext());
 		
 		
 		

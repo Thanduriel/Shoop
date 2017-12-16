@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include "gameplay/core/component.hpp"
 
 class b2World;
@@ -26,6 +27,7 @@ namespace Game {
 		// Creates the underlying body with the given definition.
 		// This should only be done once and only if the simple constructor was used.
 		b2Body& Create(const b2BodyDef& _def, const b2FixtureDef& _fixtureDef);
+		b2Body& Create(const b2BodyDef& _def, const std::vector<b2FixtureDef*>& _fixtureDefs);
 
 		// Get access to the underlying body.
 		const b2Body& Get() const { return *m_body; }
@@ -62,6 +64,7 @@ namespace Game {
 		void Draw(sf::RenderWindow& _window) override;
 
 	private:
+		int m_fixtureCount;
 		const PhysicsBodyComponent& m_target;
 	};
 
@@ -88,6 +91,7 @@ namespace Game {
 
 			// physics components can access the world for creation and destruction
 			friend b2Body& PhysicsBodyComponent::Create(const b2BodyDef&, const b2FixtureDef&);
+			friend b2Body& PhysicsBodyComponent::Create(const b2BodyDef&, const std::vector<b2FixtureDef*>&);
 			friend PhysicsBodyComponent::~PhysicsBodyComponent();
 
 			friend b2Joint& PhysicsJointComponent::Create(const b2JointDef&);
