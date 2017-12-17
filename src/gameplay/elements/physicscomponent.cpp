@@ -30,7 +30,7 @@ namespace Game {
 	void PhysicsBodyComponent::Process(float _deltaTime)
 	{
 		// process is only called when initialized with a transformation
-		m_overwriteTransform->SetPosition(m_body->GetPosition());
+		m_overwriteTransform->SetPosition(m_body->GetWorldCenter());//
 		m_overwriteTransform->SetRotation(m_body->GetAngle());
 	}
 

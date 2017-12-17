@@ -22,6 +22,14 @@ namespace Game {
 		m_sprite.setOrigin(Math::Vec2(size.x * _origin.x, size.y * _origin.y));
 	}
 
+	SpriteComponent::SpriteComponent(Actor& _actor, const sf::Texture& _texture, float _sizeX,
+		Math::Vec2 _origin)
+		: SpriteComponent(_actor, _texture, Math::Vec2(_sizeX, 
+			_sizeX * static_cast<float>(_texture.getSize().y) / _texture.getSize().x), _origin)
+	{
+
+	}
+
 	void SpriteComponent::Draw(sf::RenderWindow& _window)
 	{
 		using namespace Math;

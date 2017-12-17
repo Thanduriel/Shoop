@@ -18,9 +18,9 @@ namespace Math {
 		// Default construction sets all values to zero.
 		Vector2() : x(static_cast<T>(0)), y(static_cast<T>(0)) {}
 		// Initialize with values.
-		Vector2(T _x, T _y) : x(_x), y(_y) {}
+		constexpr Vector2(T _x, T _y) : x(_x), y(_y) {}
 		// Initialize all components with the same value.
-		explicit Vector2(T _val) : x(_val), y(_val) {}
+		constexpr explicit Vector2(T _val) : x(_val), y(_val) {}
 		// conversion from different typed vector
 		template<typename U, typename = std::enable_if_t< !std::is_same_v<T, U> >>
 		explicit Vector2(Vector2<U> _orig) : x(static_cast<T>(_orig.x)), y(static_cast<T>(_orig.y)) {}

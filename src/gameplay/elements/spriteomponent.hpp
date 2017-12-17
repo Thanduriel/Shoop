@@ -14,6 +14,12 @@ namespace Game {
 			Math::Vec2 _size,
 			Math::Vec2 _origin = Math::Vec2(0.5f));
 
+		// Computes the size y to preserve the aspect ratio.
+		SpriteComponent(Actor& _actor, const sf::Texture& _texture,
+			float _sizeX,
+			Math::Vec2 _origin = Math::Vec2(0.5f));
+
+
 		void Draw(sf::RenderWindow& _window) override;
 	protected:
 		sf::Sprite m_sprite;

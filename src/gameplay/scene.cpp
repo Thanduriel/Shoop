@@ -10,7 +10,7 @@
 namespace Game {
 
 	Scene::Scene()
-		: m_physicsWorld(Math::Vec2(-2.65f, -9.81f))
+		: m_physicsWorld(Math::Vec2(0.f, -9.81f))
 	{
 		Details::PhysicsWorldWrapper::m_world = &m_physicsWorld;
 	}
