@@ -6,6 +6,7 @@
 #include "gameplay/elements/player/sheep.hpp"
 #include "gameplay/elements/wall.hpp"
 #include "graphics/device.hpp"
+#include "gameplay/elements/ground.hpp"
 
 namespace Game {
 
@@ -21,6 +22,8 @@ namespace Game {
 	//	actor->SetScale(Vec2(100.f));
 	//	actor->GetComponent().SetPosition(Math::Vec2(0.5f, 0.f));
 		m_scene.Add(*actor);
+
+		m_scene.Add(*new GroundPlane(Vec2(0.4f, 0.f), Vec2(18.f, 7.f)));
 	}
 
 	void GSPlay::Process(float _deltaTime)

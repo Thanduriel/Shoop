@@ -109,9 +109,9 @@ namespace Game {
 				const b2PolygonShape& polyShape = static_cast<const b2PolygonShape&>(physShape);
 				sf::ConvexShape shape(polyShape.m_count);
 				for (int i = 0; i < polyShape.m_count; ++i)
-					shape.setPoint(i, Vec2(polyShape.m_vertices[i]));
+					shape.setPoint(i, Graphics::Device::ToScreenSpace(polyShape.m_vertices[i]));
 				shape.setPosition(Graphics::Device::ToScreenSpace(body.GetPosition()));
-				shape.setOrigin(Vec2(polyShape.m_centroid));
+				shape.setOrigin(Graphics::Device::ToScreenSpace(Vec2(0.f)));
 				shape.setRotation(-Math::ToDegree(body.GetTransform().q.GetAngle()));
 				_window.draw(shape);
 				break;
