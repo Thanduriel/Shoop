@@ -2,13 +2,15 @@
 
 #include "gameplay/core/actor.hpp"
 #include "physicscomponent.hpp"
+#include "generators/curve.hpp"
 
 namespace Game {
 
 	class GroundPlane : public Actor
 	{
 	public:
-		GroundPlane(Math::Vec2 _startPoint, Math::Vec2 _endPoint, uint32_t _seed = 0x1bba35);
+		// A physical ground line created from the given _curve.
+		GroundPlane(const Generators::Curve& _curve);
 	private:
 		PhysicsBodyComponentD m_body;
 	};

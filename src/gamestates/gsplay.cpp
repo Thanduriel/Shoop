@@ -23,7 +23,15 @@ namespace Game {
 	//	actor->GetComponent().SetPosition(Math::Vec2(0.5f, 0.f));
 		m_scene.Add(*actor);
 
-		m_scene.Add(*new GroundPlane(Vec2(0.4f, 0.f), Vec2(18.f, 7.f)));
+		using namespace Generators;
+		Generators::CurveGen generator;
+		Curve curve = generator.Generate(0xACCCC, 8, Vec2(11.f, 2.f), Vec2(14.f, 5.f));
+		curve[0].y = 4.f;
+		curve[1].y = 4.f;
+		curve[6].y = 4.f;
+		curve[7].y = 4.f;
+
+		m_scene.Add(*new GroundPlane(generator.SampleSmooth<>(curve, 30)));
 	}
 
 	void GSPlay::Process(float _deltaTime)
