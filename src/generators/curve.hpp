@@ -4,21 +4,23 @@
 
 namespace Generators {
 
+	using Curve = std::vector<Math::Vec2>;
+
 	class CurveGen
 	{
 	public:
-		CurveGen(unsigned _seed);
+		CurveGen();
 
-		/* Generate() ********************
-		 * Generates a smooth curve with the given parameters.
-		 * @param _size The maximum change in y direction froom the given points.
-		 * @param _segement The number of segments the curve is split into.
-		 * @param _startValue The first point of the curve.
+		Curve Generate(unsigned _seed, int _numPoints, Math::Vec2 _position, Math::Vec2 _size);
+
+		/* SampleSmooth() ********************
+		 * Subdivides a given curve into a smooth curve with more points,
+		 * preserving the original points.
+		 * @param _segement The number of segments a constant function in the same rectangle would have. 
+		 *					The real number of points is higher depending on the curvature.
 		 * @return A list of points sampled from the curve from left to right.
 		 */
-		std::vector<Math::Vec2> Generate(float _size, int _segments, 
-			Math::Vec2 _startValue, Math::Vec2 _endValue);
+		Curve SampleSmooth(const Curve& _curvePoints, int _segments);
 	private:
-		RandomGenerator m_rng;
 	};
 }

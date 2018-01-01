@@ -17,9 +17,10 @@ namespace Game {
 
 		Assert(_startPoint.x < _endPoint.x, "_startPoint has to be left of _endPoint.");
 
-		Generators::CurveGen generator(_seed);
+		Generators::CurveGen generator;
 
-		std::vector<Vec2> curve = generator.Generate(0.f, numSegments, _startPoint, _endPoint);
+		std::vector<Vec2> curve = generator.SampleSmooth(/*{_startPoint, (_startPoint+_endPoint)*0.3f, _endPoint}*/
+			generator.Generate(0x8E5A5C43, 6, (_startPoint + _endPoint)*0.5f, _endPoint - _startPoint), numSegments);
 
 		b2BodyDef def;
 		def.position = Vec2(0.f);
@@ -27,6 +28,7 @@ namespace Game {
 
 		b2Vec2 vertices[3];
 
+		// generate physical triangle chain
 		const int numTriangles = numSegments - 1;
 		std::vector<b2PolygonShape> shapes(numTriangles);
 		std::vector<b2FixtureDef> fixtures(numTriangles);

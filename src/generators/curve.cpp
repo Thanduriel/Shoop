@@ -51,25 +51,57 @@ namespace Generators{
 		return (1.f - blendFunc(_x))* _a + blendFunc(_x)*_b;
 	}
 
-	CurveGen::CurveGen(unsigned _seed)
-		: m_rng(_seed)
+	CurveGen::CurveGen()
 	{}
 
-	std::vector<Vec2> CurveGen::Generate(float _size, int _segments, Vec2 _startValue, Vec2 _endValue)
+	Curve CurveGen::Generate(unsigned _seed, int _numPoints, Vec2 _position, Vec2 _size)
 	{
-		std::vector<Vec2> points(_segments);
+		Curve curve(_numPoints);
+		RandomGenerator random(_seed);
 
-		points.front() = _startValue;
-		points.back() = _endValue;
+		const Vec2 lowerBound = _position - _size * 0.5f;
+		const Vec2 upperBound = _position + _size * 0.5f;
 
-		const Vec2 dif = _endValue - _startValue;
+		const float step = (upperBound.x - lowerBound.x) / (_numPoints-1);
 
-		for (int i = 1; i < _segments - 1; ++i)
+		for (int i = 0; i < _numPoints; ++i)
+			curve[i] = Vec2(lowerBound.x + i * step, random.Uniform(lowerBound.y, upperBound.y));
+
+		return std::move(curve);
+	}
+
+	Curve CurveGen::SampleSmooth(const Curve& _curvePoints, int _segments)
+	{
+		Assert(_curvePoints.size() < static_cast<size_t>(_segments), 
+			"A higher sampling rate is required to create a smooth curve.");
+		Assert(_curvePoints.back().x > _curvePoints.front().x, 
+			"The points need to be ordered from left to right.");
+
+		std::vector<Vec2> points;
+		points.reserve(_segments + 2);
+		const float ratio = static_cast<float>(_segments) / _curvePoints.size();
+
+		const float distX = _curvePoints.back().x - _curvePoints.front().x;
+
+		float sum = 0.f;
+		for (size_t j = 0; j < _curvePoints.size()-1; ++j)
 		{
-			float ratio = static_cast<float>(i) / _segments;
-			points[i].x = _startValue.x + dif.x * ratio;
-			points[i].y = Interpolate<BlendCos>(_startValue.y, _endValue.y, ratio);
+			const Vec2& start = _curvePoints[j];
+			const Vec2& end = _curvePoints[j+1];
+
+			const Vec2 dif = end - start;
+			int n = static_cast<int>(std::ceil(dif.Len() / distX * _segments));
+
+			// the last point is the first of the next interval
+			for (int i = 0; i < n; ++i)
+			{
+				float ratio = static_cast<float>(i) / n;
+
+				points.emplace_back(start.x + dif.x * ratio,
+					Interpolate<BlendCos>(start.y, end.y, ratio));
+			}
 		}
+		points.emplace_back(_curvePoints.back());
 
 		return std::move(points);
 	}
