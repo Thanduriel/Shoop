@@ -13,7 +13,7 @@ namespace Game {
 
 	constexpr float SPRITE_SIZE = WHEEL_RADIUS * 3.f * 255.f/147.f;
 
-	Sheep::Sheep(Math::Vec2 _position)
+	Sheep::Sheep(Math::Vec2 _position, const sf::Color& _color)
 		: Actor(_position),
 		m_wheelSprite(THISACTOR, Resources::Load<sf::Texture>("wheel"), Math::Vec2(WHEEL_RADIUS*2.3f)),
 		m_bodySprite(THISACTOR, Resources::Load<sf::Texture>("SheepFront"), SPRITE_SIZE),
@@ -26,6 +26,7 @@ namespace Game {
 		m_bodySprite.SetPosition(Vec2(0.04f, 0.f));
 		m_legSprite.SetPosition(Vec2(0.04f, 0.f));
 		m_unicycleSprite.SetPosition(Vec2(0.08f,0.f));
+		m_unicycleSprite.GetSprite().setColor(_color);
 		m_wheelSprite.SetPosition(WHEEL_OFFSET);
 		// wheel
 		b2BodyDef def;
@@ -65,6 +66,7 @@ namespace Game {
 		headFixture.density = 0.1f;
 		headFixture.restitution = 0.f;
 		headFixture.shape = &headShape;
+		headFixture.userData = this; // mark the head in some unique way
 
 		m_body.Create(def, { &bodyFixture, &headFixture });
 
@@ -77,5 +79,13 @@ namespace Game {
 		jointDef.localAnchorB = WHEEL_OFFSET;
 
 		m_joint.Create(jointDef);
+
+		// head can take lethal damage
+		auto contactFn = [this](b2Fixture& _slf, b2Fixture& _oth)
+		{
+			if (_slf.GetUserData() == this)
+				m_bodySprite.GetSprite().setColor(sf::Color(0xff0000ff));
+		};
+		m_body.SetOnContactBegin(std::move(contactFn));
 	}
 }

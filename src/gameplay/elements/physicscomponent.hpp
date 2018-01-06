@@ -1,17 +1,21 @@
 #pragma once
 
 #include <vector>
+#include <functional>
 #include "math/transformation.hpp"
 #include "gameplay/core/component.hpp"
-
+#include "Box2D/Box2D.h"
+/*
 class b2World;
 struct b2BodyDef;
 struct b2JointDef;
 struct b2FixtureDef;
 class b2Body;
-class b2Joint;
+class b2Fixture;
+class b2Joint;*/
 
 namespace Game {
+
 	// Wrapper for a b2 physics body.
 	class PhysicsBodyComponent : public ProcessComponent
 	{
@@ -26,16 +30,24 @@ namespace Game {
 		void Process(float _deltaTime);
 
 		// Creates the underlying body with the given definition.
-		// This should only be done once and only if the simple constructor was used.
 		b2Body& Create(const b2BodyDef& _def, const b2FixtureDef& _fixtureDef);
 		b2Body& Create(const b2BodyDef& _def, const std::vector<b2FixtureDef*>& _fixtureDefs);
 
 		// Get access to the underlying body.
 		const b2Body& Get() const { return *m_body; }
 		b2Body& Get() { return *m_body; }
+
+		typedef std::function<void(b2Fixture&, b2Fixture&)> ContactEvent;
+
+		void SetOnContactBegin(ContactEvent&& _event) { m_onContactBegin = std::move(_event); }
+		void SetOnContactEnd(ContactEvent&& _event) { m_onContactEnd = std::move(_event); }
 	private:
 		b2Body* m_body;
 		Math::Transformation* m_overwriteTransform;
+		ContactEvent m_onContactBegin;
+		ContactEvent m_onContactEnd;
+
+		friend class ContactListener;
 	};
 
 	// Wrapper for a b2 physics joint.
@@ -83,6 +95,15 @@ namespace Game {
 		PhysicsDebugComponent m_debugDraw;
 	};
 
+	class ContactListener : public b2ContactListener
+	{
+	public:
+		void BeginContact(b2Contact* contact);
+		void EndContact(b2Contact* contact);
+		void PreSolve(b2Contact* contact, const b2Manifold* oldManifold) {}
+		void PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {}
+	};
+
 	class Scene;
 
 	namespace Details {
@@ -100,6 +121,6 @@ namespace Game {
 
 			// the scene controls the world
 			friend Game::Scene;
-		};
+		};
 	}
 }

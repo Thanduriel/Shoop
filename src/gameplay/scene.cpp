@@ -8,10 +8,13 @@
 #include "gameplay/elements/physicscomponent.hpp"
 
 namespace Game {
+	// the contact listener does not have any state.
+	ContactListener g_contactListener;
 
 	Scene::Scene()
 		: m_physicsWorld(Math::Vec2(0.f, -9.81f))
 	{
+		m_physicsWorld.SetContactListener(&g_contactListener);
 		Details::PhysicsWorldWrapper::m_world = &m_physicsWorld;
 	}
 

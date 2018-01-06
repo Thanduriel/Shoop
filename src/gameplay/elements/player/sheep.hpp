@@ -9,7 +9,7 @@ namespace Game {
 	class Sheep : public Actor
 	{
 	public:
-		Sheep(Math::Vec2 _position);
+		Sheep(Math::Vec2 _position, const sf::Color& _color = sf::Color(0xffffffff));
 
 	private:
 		GlobalSpriteComponent m_wheelSprite;

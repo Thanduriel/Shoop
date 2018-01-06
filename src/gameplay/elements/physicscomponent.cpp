@@ -23,7 +23,7 @@ namespace Game {
 		Assert(m_body, "An uninitialized body component is being destroyed.");
 		// when the scene is destroyed m_world is set to nullptr and all its objects
 		// are destroyed at once.
-		if(Details::PhysicsWorldWrapper::m_world)
+		if (Details::PhysicsWorldWrapper::m_world)
 			Details::PhysicsWorldWrapper::m_world->DestroyBody(m_body);
 	}
 
@@ -38,6 +38,7 @@ namespace Game {
 	{
 		Assert(!m_body, "A body should only be created once per component.");
 		m_body = Details::PhysicsWorldWrapper::m_world->CreateBody(&_def);
+		m_body->SetUserData(this);
 		m_body->CreateFixture(&_fixtureDef);
 
 		return *m_body;
@@ -47,7 +48,8 @@ namespace Game {
 	{
 		Assert(!m_body, "A body should only be created once per component.");
 		m_body = Details::PhysicsWorldWrapper::m_world->CreateBody(&_def);
-		for(b2FixtureDef* fixture : _fixtureDefs)
+		m_body->SetUserData(this);
+		for (b2FixtureDef* fixture : _fixtureDefs)
 			m_body->CreateFixture(fixture);
 
 		return *m_body;
@@ -97,11 +99,11 @@ namespace Game {
 			{
 				const b2CircleShape& circleShape = static_cast<const b2CircleShape&>(physShape);
 				sf::CircleShape shape(fixture->GetShape()->m_radius);
-				shape.setPosition(Graphics::Device::ToScreenSpace(body.GetPosition() 
+				shape.setPosition(Graphics::Device::ToScreenSpace(body.GetPosition()
 					+ b2Mul(body.GetTransform().q, circleShape.m_p)));
 				shape.setOrigin(Vec2(shape.getRadius()));
 				_window.draw(shape);
-				
+
 				break;
 			}
 			case b2Shape::e_polygon:
@@ -120,9 +122,28 @@ namespace Game {
 				Assert(false, "This shape type is not supported for debug draw.");
 			}
 		} while (fixture = fixture->GetNext());
-		
-		
-		
+
+
+
+	}
+
+	// ****************************************************************** //
+	void ContactListener::BeginContact(b2Contact* contact)
+	{
+		PhysicsBodyComponent& compA = *reinterpret_cast<PhysicsBodyComponent*>(contact->GetFixtureA()->GetBody()->GetUserData());
+		if (compA.m_onContactBegin) compA.m_onContactBegin(*contact->GetFixtureA(), *contact->GetFixtureB());
+
+		PhysicsBodyComponent& compB = *reinterpret_cast<PhysicsBodyComponent*>(contact->GetFixtureB()->GetBody()->GetUserData());
+		if (compB.m_onContactBegin) compB.m_onContactBegin(*contact->GetFixtureB(), *contact->GetFixtureA());
+	}
+
+	void ContactListener::EndContact(b2Contact* contact)
+	{
+		PhysicsBodyComponent& compA = *reinterpret_cast<PhysicsBodyComponent*>(contact->GetFixtureA()->GetBody()->GetUserData());
+		if (compA.m_onContactEnd) compA.m_onContactEnd(*contact->GetFixtureA(), *contact->GetFixtureB());
+
+		PhysicsBodyComponent& compB = *reinterpret_cast<PhysicsBodyComponent*>(contact->GetFixtureB()->GetBody()->GetUserData());
+		if (compB.m_onContactEnd) compB.m_onContactEnd(*contact->GetFixtureB(), *contact->GetFixtureA());
 	}
 
 }

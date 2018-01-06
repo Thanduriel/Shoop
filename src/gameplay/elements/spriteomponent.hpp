@@ -21,6 +21,9 @@ namespace Game {
 
 
 		void Draw(sf::RenderWindow& _window) override;
+
+		// Direct access to the underlying sprite.
+		sf::Sprite& GetSprite() { return m_sprite; }
 	protected:
 		sf::Sprite m_sprite;
 		Math::Vec2 m_baseScale;

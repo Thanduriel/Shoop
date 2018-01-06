@@ -5,6 +5,7 @@
 namespace Generators {
 	
 	using Curve = std::vector<Math::Vec2>;
+	struct BlendCubic;
 
 	class CurveGen
 	{
