@@ -68,6 +68,20 @@ namespace Game {
 		b2Joint* m_joint;
 	};
 
+	// Structure that provides additional information to a body or fixture given as user data.
+	struct PhysicsInfo
+	{
+		// Acquire the PhysicsInfo of a fixture.
+		static PhysicsInfo& Get(const b2Fixture& _fixture) {
+			return *static_cast<PhysicsInfo*>(_fixture.GetUserData());
+		}
+		enum Flags
+		{
+			IsLethal = 1
+		};
+		unsigned flags;
+	};
+
 	// Component that draws a shape representative to the bodies first shape.
 	class PhysicsDebugComponent : public DrawComponent
 	{
@@ -77,7 +91,6 @@ namespace Game {
 		void Draw(sf::RenderWindow& _window) override;
 
 	private:
-		int m_fixtureCount;
 		const PhysicsBodyComponent& m_target;
 	};
 
@@ -95,13 +108,14 @@ namespace Game {
 		PhysicsDebugComponent m_debugDraw;
 	};
 
+	// The contact event manager
 	class ContactListener : public b2ContactListener
 	{
 	public:
-		void BeginContact(b2Contact* contact);
-		void EndContact(b2Contact* contact);
-		void PreSolve(b2Contact* contact, const b2Manifold* oldManifold) {}
-		void PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {}
+		void BeginContact(b2Contact* contact) override;
+		void EndContact(b2Contact* contact) override;
+		void PreSolve(b2Contact* contact, const b2Manifold* oldManifold) override {}
+		void PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) override {}
 	};
 
 	class Scene;
@@ -121,6 +135,7 @@ namespace Game {
 
 			// the scene controls the world
 			friend Game::Scene;
-		};
+		};
+
 	}
 }

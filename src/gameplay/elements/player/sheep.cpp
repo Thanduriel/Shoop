@@ -83,8 +83,12 @@ namespace Game {
 		// head can take lethal damage
 		auto contactFn = [this](b2Fixture& _slf, b2Fixture& _oth)
 		{
-			if (_slf.GetUserData() == this)
+			// a fixture without Info is assumed to be lethal
+			if (_slf.GetUserData() == this && (!_oth.GetUserData()
+				|| PhysicsInfo::Get(_oth).flags & PhysicsInfo::IsLethal))
+			{
 				m_bodySprite.GetSprite().setColor(sf::Color(0xff0000ff));
+			}
 		};
 		m_body.SetOnContactBegin(std::move(contactFn));
 	}

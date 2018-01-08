@@ -10,9 +10,10 @@ namespace Game {
 	public:
 		
 		 // @param _position The center of the rectangle
-		Wall(Math::Vec2 _position, Math::Vec2 _size);
+		Wall(Math::Vec2 _position, Math::Vec2 _size, bool _isLethal = false);
 
 	protected:
 		PhysicsBodyComponentD m_body;
+		PhysicsInfo m_info;
 	};
 }
