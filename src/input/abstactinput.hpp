@@ -6,7 +6,7 @@
 
 namespace Input
 {
-	enum Axis
+	enum struct Axis
 	{
 		Horizontal,
 		Vertical,
@@ -14,7 +14,7 @@ namespace Input
 
 	};
 
-	enum Key
+	enum struct Key
 	{
 		Jump,
 		Confirm,
