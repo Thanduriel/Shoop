@@ -39,6 +39,7 @@ namespace Game {
 			fixturePtrs[i] = &fixtures[i];
 		}
 
+		m_body.GetInfo().flags |= PhysicsInfo::IsGround;
 		m_body.Create(def, fixturePtrs);
 	}
 }

@@ -18,6 +18,8 @@ namespace Math {
 		float GetRotation() const { return m_rotation; }
 		void SetRotation(float _rotation);
 
+		Vec2 GetRotated(Vec2 _vector) const;
+
 		// Transforms a vector from this local space to world space.
 		Vec2 Transform(Vec2 _vector) const;
 		// Returns a Transformation that effectively applies first other and then this,

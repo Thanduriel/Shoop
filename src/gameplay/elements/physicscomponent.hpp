@@ -5,6 +5,7 @@
 #include "math/transformation.hpp"
 #include "gameplay/core/component.hpp"
 #include "Box2D/Box2D.h"
+#include "gameplay/core/actor.hpp"
 /*
 class b2World;
 struct b2BodyDef;
@@ -15,6 +16,21 @@ class b2Fixture;
 class b2Joint;*/
 
 namespace Game {
+
+	// Structure that provides additional information to a body or fixture given as user data.
+	struct PhysicsInfo
+	{
+		// Acquire the PhysicsInfo of a fixture.
+		static PhysicsInfo& Get(const b2Fixture& _fixture) {
+			return *static_cast<PhysicsInfo*>(_fixture.GetUserData());
+		}
+		enum Flags
+		{
+			IsLethal = 1 << 0,
+			IsGround = 1 << 1
+		};
+		unsigned flags = IsLethal;
+	};
 
 	// Wrapper for a b2 physics body.
 	class PhysicsBodyComponent : public ProcessComponent
@@ -30,12 +46,15 @@ namespace Game {
 		void Process(float _deltaTime);
 
 		// Creates the underlying body with the given definition.
-		b2Body& Create(const b2BodyDef& _def, const b2FixtureDef& _fixtureDef);
+		b2Body& Create(const b2BodyDef& _def, b2FixtureDef& _fixtureDef);
 		b2Body& Create(const b2BodyDef& _def, const std::vector<b2FixtureDef*>& _fixtureDefs);
 
 		// Get access to the underlying body.
 		const b2Body& Get() const { return *m_body; }
 		b2Body& Get() { return *m_body; }
+
+		const PhysicsInfo& GetInfo() const { return m_info; }
+		PhysicsInfo& GetInfo() { return m_info; }
 
 		typedef std::function<void(b2Fixture&, b2Fixture&)> ContactEvent;
 
@@ -43,6 +62,7 @@ namespace Game {
 		void SetOnContactEnd(ContactEvent&& _event) { m_onContactEnd = std::move(_event); }
 	private:
 		b2Body* m_body;
+		PhysicsInfo m_info;
 		Math::Transformation* m_overwriteTransform;
 		ContactEvent m_onContactBegin;
 		ContactEvent m_onContactEnd;
@@ -66,20 +86,6 @@ namespace Game {
 		b2Joint& Get() { return *m_joint; }
 	private:
 		b2Joint* m_joint;
-	};
-
-	// Structure that provides additional information to a body or fixture given as user data.
-	struct PhysicsInfo
-	{
-		// Acquire the PhysicsInfo of a fixture.
-		static PhysicsInfo& Get(const b2Fixture& _fixture) {
-			return *static_cast<PhysicsInfo*>(_fixture.GetUserData());
-		}
-		enum Flags
-		{
-			IsLethal = 1
-		};
-		unsigned flags;
 	};
 
 	// Component that draws a shape representative to the bodies first shape.
@@ -126,7 +132,7 @@ namespace Game {
 			static b2World* m_world;
 
 			// physics components can access the world for creation and destruction
-			friend b2Body& PhysicsBodyComponent::Create(const b2BodyDef&, const b2FixtureDef&);
+			friend b2Body& PhysicsBodyComponent::Create(const b2BodyDef&, b2FixtureDef&);
 			friend b2Body& PhysicsBodyComponent::Create(const b2BodyDef&, const std::vector<b2FixtureDef*>&);
 			friend PhysicsBodyComponent::~PhysicsBodyComponent();
 

@@ -16,6 +16,15 @@ namespace Math{
 		UpdateMatrix();
 	}
 
+	Vec2 Transformation::GetRotated(Vec2 _vector) const
+	{
+		Vec2 u;
+		u.x = _vector.x * m_cosR - _vector.y * m_sinR;
+		u.y = _vector.y * m_cosR + _vector.x * m_sinR;
+
+		return u;
+	}
+
 	Vec2 Transformation::Transform(Vec2 _vector) const
 	{
 		const Vec2 v = _vector * m_scale;

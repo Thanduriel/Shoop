@@ -21,7 +21,9 @@ namespace Game {
 		m_unicycleSprite(THISACTOR, Resources::Load<sf::Texture>("unicycle"), SPRITE_SIZE),
 		m_wheel(THISACTOR, &m_wheelSprite),
 		m_body(THISACTOR, this),
-		m_joint(THISACTOR)
+		m_joint(THISACTOR),
+		m_jumpComponent(THISACTOR, m_body),
+		m_groundContacts(0)
 	{
 		m_bodySprite.SetPosition(Vec2(0.04f, 0.f));
 		m_legSprite.SetPosition(Vec2(0.04f, 0.f));
@@ -84,12 +86,25 @@ namespace Game {
 		auto contactFn = [this](b2Fixture& _slf, b2Fixture& _oth)
 		{
 			// a fixture without Info is assumed to be lethal
-			if (_slf.GetUserData() == this && (!_oth.GetUserData()
-				|| PhysicsInfo::Get(_oth).flags & PhysicsInfo::IsLethal))
+			if (_slf.GetType() == b2Shape::Type::e_circle 
+				&&  PhysicsInfo::Get(_oth).flags & PhysicsInfo::IsLethal)
 			{
 				m_bodySprite.GetSprite().setColor(sf::Color(0xff0000ff));
 			}
 		};
 		m_body.SetOnContactBegin(std::move(contactFn));
+
+		auto groundBeginFn = [this](b2Fixture& _slf, b2Fixture& _oth)
+		{
+			if (PhysicsInfo::Get(_oth).flags & PhysicsInfo::IsGround)
+				++m_groundContacts;
+		};
+		auto groundEndFn = [this](b2Fixture& _slf, b2Fixture& _oth)
+		{
+			if (PhysicsInfo::Get(_oth).flags & PhysicsInfo::IsGround)
+				--m_groundContacts;
+		};
+		m_wheel.SetOnContactBegin(groundBeginFn);
+		m_wheel.SetOnContactEnd(groundEndFn);
 	}
 }

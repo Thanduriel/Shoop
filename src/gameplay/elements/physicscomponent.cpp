@@ -34,9 +34,11 @@ namespace Game {
 		m_overwriteTransform->SetRotation(m_body->GetAngle());
 	}
 
-	b2Body& PhysicsBodyComponent::Create(const b2BodyDef& _def, const b2FixtureDef& _fixtureDef)
+	b2Body& PhysicsBodyComponent::Create(const b2BodyDef& _def, b2FixtureDef& _fixtureDef)
 	{
 		Assert(!m_body, "A body should only be created once per component.");
+
+		if (!_fixtureDef.userData) _fixtureDef.userData = &m_info;
 		m_body = Details::PhysicsWorldWrapper::m_world->CreateBody(&_def);
 		m_body->SetUserData(this);
 		m_body->CreateFixture(&_fixtureDef);
@@ -46,6 +48,8 @@ namespace Game {
 
 	b2Body& PhysicsBodyComponent::Create(const b2BodyDef& _def, const std::vector<b2FixtureDef*>& _fixtureDefs)
 	{
+		for(auto fixtureDef : _fixtureDefs)
+			if (!fixtureDef->userData) fixtureDef->userData = &m_info;
 		Assert(!m_body, "A body should only be created once per component.");
 		m_body = Details::PhysicsWorldWrapper::m_world->CreateBody(&_def);
 		m_body->SetUserData(this);

@@ -14,6 +14,5 @@ namespace Game {
 
 	protected:
 		PhysicsBodyComponentD m_body;
-		PhysicsInfo m_info;
 	};
 }

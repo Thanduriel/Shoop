@@ -1,11 +1,11 @@
 #pragma once
 
 #include "random.hpp"
+#include "math/functions.hpp"
 
 namespace Generators {
 	
 	using Curve = std::vector<Math::Vec2>;
-	struct BlendCubic;
 
 	class CurveGen
 	{
@@ -22,7 +22,7 @@ namespace Generators {
 		 *					The real number of points is higher depending on the curvature.
 		 * @return A list of points sampled from the curve from left to right.
 		 */
-		template<typename BlendFunc = BlendCubic>
+		template<typename BlendFunc = Math::BlendCubic>
 		Curve SampleSmooth(const Curve& _curvePoints, int _segments)
 		{
 			using namespace Math;
@@ -67,40 +67,6 @@ namespace Generators {
 			BlendF blendFunc;
 
 			return (1.f - blendFunc(_x))* _a + blendFunc(_x)*_b;
-		}
-	};
-
-	// various sigmoid functions
-
-	struct BlendCubic
-	{
-		float operator()(float _x) const
-		{
-			return 3.f * _x*_x - 2.f * _x * _x * _x;
-		}
-	};
-
-	struct Blend5
-	{
-		float operator()(float x) const
-		{
-			return x * x * x * (x * (x * 6 - 15.f) + 10.f);
-		}
-	};
-
-	struct BlendLinear
-	{
-		float operator()(float x) const
-		{
-			return x;
-		}
-	};
-
-	struct BlendCos
-	{
-		float operator()(float x) const
-		{
-			return (1.f - cos(x * 3.1415f)) * 0.5f;
 		}
 	};
 }

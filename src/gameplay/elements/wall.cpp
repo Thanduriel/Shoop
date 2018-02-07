@@ -5,8 +5,7 @@ namespace Game {
 
 	Wall::Wall(Math::Vec2 _position, Math::Vec2 _size, bool _isLethal)
 		: Actor(_position),
-		m_body(THISACTOR),
-		m_info{ _isLethal ? PhysicsInfo::IsLethal : 0u }
+		m_body(THISACTOR)
 	{
 		b2BodyDef def;
 		def.position = _position;
@@ -20,8 +19,8 @@ namespace Game {
 		fixture.friction = 1.f;
 		fixture.restitution = 0.f;
 		fixture.shape = &shape;
-		fixture.userData = &m_info;
-
+		
+		if (_isLethal) m_body.GetInfo().flags = PhysicsInfo::IsLethal;
 		m_body.Create(def, fixture);
 	}
 }

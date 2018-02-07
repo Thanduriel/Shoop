@@ -12,7 +12,7 @@ namespace Game {
 
 	using namespace Math;
 
-	Actor* actor;
+	Sheep* actor;
 
 	GSPlay::GSPlay()
 	{
@@ -37,6 +37,14 @@ namespace Game {
 	void GSPlay::Process(float _deltaTime)
 	{
 		m_scene.Process(_deltaTime);
+
+		static float sum = 0.f;
+		sum += _deltaTime;
+		if (sum > 1.f)
+		{
+			actor->Jump();
+			sum = 0.f;
+		}
 
 		// should probably happen after the draw
 		m_scene.CleanUp();
