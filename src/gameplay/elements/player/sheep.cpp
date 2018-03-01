@@ -23,6 +23,7 @@ namespace Game {
 		m_body(THISACTOR, this),
 		m_joint(THISACTOR),
 		m_jumpComponent(THISACTOR, m_body),
+		m_balancerComponent(THISACTOR, m_body),
 		m_groundContacts(0)
 	{
 		m_bodySprite.SetPosition(Vec2(0.04f, 0.f));
@@ -72,6 +73,8 @@ namespace Game {
 
 		m_body.Create(def, { &bodyFixture, &headFixture });
 
+		m_body.Get().ResetMassData();
+		
 		// connection
 		b2RevoluteJointDef jointDef;
 		jointDef.bodyA = &m_wheel.Get();

@@ -4,6 +4,7 @@
 #include "gameplay/elements/physicscomponent.hpp"
 #include "gameplay/elements/spriteomponent.hpp"
 #include "jumpcomponent.hpp"
+#include "Balancercomponent.hpp"
 
 namespace Game {
 
@@ -13,6 +14,9 @@ namespace Game {
 		Sheep(Math::Vec2 _position, const sf::Color& _color = sf::Color(0xffffffff));
 
 		void Jump() { m_jumpComponent.Jump(); }
+		void VBalance() { m_balancerComponent.VBalance(); }
+		void OBalance() { m_balancerComponent.OBalance(); }
+
 	private:
 		GlobalSpriteComponent m_wheelSprite;
 		SpriteComponent m_legSprite;
@@ -22,6 +26,8 @@ namespace Game {
 		PhysicsBodyComponentD m_body;
 		PhysicsJointComponent m_joint;
 		JumpComponent m_jumpComponent;
+		BalancerComponent m_balancerComponent;
+		
 
 		int m_groundContacts;
 	};
