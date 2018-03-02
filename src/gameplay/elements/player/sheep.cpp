@@ -73,7 +73,7 @@ namespace Game {
 
 		m_body.Create(def, { &bodyFixture, &headFixture });
 
-		m_body.Get().ResetMassData();
+		//m_body.Get().ResetMassData();
 		
 		// connection
 		b2RevoluteJointDef jointDef;
@@ -100,12 +100,16 @@ namespace Game {
 		auto groundBeginFn = [this](b2Fixture& _slf, b2Fixture& _oth)
 		{
 			if (PhysicsInfo::Get(_oth).flags & PhysicsInfo::IsGround)
+			{
 				++m_groundContacts;
+			}
 		};
 		auto groundEndFn = [this](b2Fixture& _slf, b2Fixture& _oth)
 		{
 			if (PhysicsInfo::Get(_oth).flags & PhysicsInfo::IsGround)
+			{
 				--m_groundContacts;
+			}
 		};
 		m_wheel.SetOnContactBegin(groundBeginFn);
 		m_wheel.SetOnContactEnd(groundEndFn);

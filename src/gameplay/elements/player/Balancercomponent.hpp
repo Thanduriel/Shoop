@@ -16,6 +16,6 @@ namespace Game {
 		float32 m_GForce;
 		float32 m_NForce;
 
-		b2Body& m_targetb2Body;
+		PhysicsBodyComponentD& m_targetBody;
 	};
 }
