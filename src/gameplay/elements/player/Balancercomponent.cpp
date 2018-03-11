@@ -1,5 +1,6 @@
 #include "Balancercomponent.hpp"
 #include "math/functions.hpp"
+#include "sheep.hpp"
 
 namespace Game {
 
@@ -14,7 +15,10 @@ namespace Game {
 
 	}
 
-	void BalancerComponent::Process(float _deltaTime) {}
+	void BalancerComponent::Process(float _deltaTime)
+	{
+		if (static_cast<Sheep&>(m_actor).GetGroundContacts()) OBalance();
+	}
 
 	//Balanciert gegen die Gewichtskraft
 	void BalancerComponent::VBalance()

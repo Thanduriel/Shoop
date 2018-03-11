@@ -39,7 +39,7 @@ namespace Math {
 	{
 		float operator()(float x) const
 		{
-			return -x*x + 2*x;
+			return -x*x + 2.f*x;
 		}
 	};
 }

@@ -19,6 +19,7 @@ namespace Game {
 		//Balanciert gegen Normalkraft
 		void OBalance() { m_balancerComponent.OBalance(); }
 
+		int GetGroundContacts() const { return m_groundContacts; }
 	private:
 		GlobalSpriteComponent m_wheelSprite;
 		SpriteComponent m_legSprite;
@@ -30,7 +31,6 @@ namespace Game {
 		JumpComponent m_jumpComponent;
 		BalancerComponent m_balancerComponent;
 		
-
 		int m_groundContacts;
 	};
 }

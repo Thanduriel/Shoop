@@ -42,14 +42,12 @@ namespace Game {
 
 		static float sum = 0.f;
 
-		actor->OBalance();
-
-		/*sum += _deltaTime;
-		if (sum > 1.f)
+		sum += _deltaTime;
+		if (sum > 1.15f)
 		{
 			actor->Jump();
 			sum = 0.f;
-		}*/
+		}
 
 		// should probably happen after the draw
 		m_scene.CleanUp();

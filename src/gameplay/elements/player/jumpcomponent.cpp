@@ -3,14 +3,14 @@
 
 namespace Game {
 
-	constexpr static float DEFAULT_MAX_STRENGTH = 4.f;
+	constexpr static float DEFAULT_MAX_STRENGTH = 2.f;
 	constexpr static float DEFAULT_CHARGE_TIME = 4.f;
 
 	JumpComponent::JumpComponent(Actor& _actor, PhysicsBodyComponent& _targetBody)
 		: ProcessComponent(_actor),
 		m_targetBody(_targetBody),
 		m_maxCharge(DEFAULT_CHARGE_TIME),
-		m_charge(DEFAULT_CHARGE_TIME),
+		m_charge(0.f),
 		m_maxStrength(DEFAULT_MAX_STRENGTH)
 	{
 
@@ -18,7 +18,7 @@ namespace Game {
 
 	void JumpComponent::Process(float _deltaTime)
 	{
-		m_charge = std::max(m_maxCharge, m_charge + _deltaTime);
+		m_charge = std::min(m_maxCharge, m_charge + _deltaTime);
 	}
 
 	void JumpComponent::Jump()
