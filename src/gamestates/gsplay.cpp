@@ -7,18 +7,23 @@
 #include "gameplay/elements/wall.hpp"
 #include "graphics/device.hpp"
 #include "gameplay/elements/ground.hpp"
+#include "gameplay/elements/physicalparticle.hpp"
+#include "generators/random.hpp"
+#include "gameplay/elements/factory.hpp"
 
 namespace Game {
 
 	using namespace Math;
 
 	Sheep* actor;
+	std::unique_ptr<FactoryComponent> testFactory;
 
 	GSPlay::GSPlay()
 	{
 		Actor* wall = new Wall(Graphics::Device::GetSizeWorldSpace() * Math::Vec2(0.5f, 0.1f), Math::Vec2(10.f, 1.f));
 		m_scene.Add(*wall);
 		actor = new Sheep(Graphics::Device::GetSizeWorldSpace() * 0.5f);
+		testFactory = std::make_unique<FactoryComponent>(*actor, Vec2(0.f, 0.9f));
 	//	actor->SetScale(Vec2(100.f));
 	//	actor->GetComponent().SetPosition(Math::Vec2(0.5f, 0.f));
 		m_scene.Add(*actor);
@@ -47,10 +52,17 @@ namespace Game {
 		{
 			actor->Jump();
 			sum = 0.f;
+			//m_scene.Add(*new PhysicalParticle
+			for (int i = 0; i < 20; ++i)
+				testFactory->CreateTransformedV<PhysicalParticle>(Vec2(0.f), 0.f,
+					Vec2(Generators::g_random.Uniform(-0.1f,0.1f),Generators::g_random.Uniform(4.5f,8.2f)),
+					Resources::Load<sf::Texture>("wheel"),
+					Generators::g_random.Uniform(1.5f, 4.f), 0.1f);
 		}
 
 		// should probably happen after the draw
 		m_scene.CleanUp();
+		m_scene.RegisterActors();
 	}
 
 	void GSPlay::Draw(sf::RenderWindow& _window)
