@@ -13,16 +13,17 @@ namespace Game {
 		def.position = _position;
 		def.type = b2BodyType::b2_dynamicBody;
 
-		b2CircleShape wheelShape;
-		wheelShape.m_radius = _size*0.6f;
+		b2CircleShape shape;
+		shape.m_radius = _size*0.6f;
 
-		b2FixtureDef wheelFixture;
-		wheelFixture.friction = _friction;
-		wheelFixture.density = _density;
-		wheelFixture.restitution = _bouncyness;
-		wheelFixture.shape = &wheelShape;
+		b2FixtureDef fixture;
+		fixture.friction = _friction;
+		fixture.density = _density;
+		fixture.restitution = _bouncyness;
+		fixture.shape = &shape;
 
-		m_body.Create(def, wheelFixture);
+		m_body.Create(def, fixture);
 		m_body.Get().SetLinearVelocity(_velocity);
+		m_body.GetInfo().flags = 0x0;
 	}
 }

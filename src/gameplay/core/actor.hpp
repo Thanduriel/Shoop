@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <typeinfo>
 #include "math/transformation.hpp"
 
 namespace Game {
@@ -23,6 +24,17 @@ namespace Game {
 
 		std::vector<Component*>& GetComponents() { return m_components; }
 
+		// Returns the first component of type T associated with this actor.
+		template<typename T, typename = std::enable_if_t<std::is_base_of_v<Component,T>>>
+		T* GetComponent()
+		{
+			const std::type_info& tInfo = typeid(T);
+			for (Component* comp : m_components)
+				if (tInfo == typeid(*comp))
+					return static_cast<T*>(comp);
+			
+			return nullptr;
+		}
 	private:
 		bool m_isDestroyed;
 		std::vector<Component*> m_components;

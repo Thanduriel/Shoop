@@ -21,7 +21,7 @@ namespace Game {
 		};
 
 		Component(Actor& _actor, Type _type);
-		~Component();
+		virtual ~Component();
 		
 		// A component always requires an owning Actor.
 		// Reasonable copy constructors take an Actor&.
@@ -30,7 +30,7 @@ namespace Game {
 		Component(Component&&) = delete;
 		Component& operator=(Component&) = delete;
 		Component& operator=(Component&&) = delete;
-
+		
 		Actor& GetActor() const { return m_actor; }
 		Type GetType() const { return m_type; }
 	protected:
