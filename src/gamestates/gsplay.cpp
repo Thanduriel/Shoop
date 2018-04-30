@@ -28,7 +28,8 @@ namespace Game {
 		testFactory = std::make_unique<FactoryComponent>(*actor, Vec2(0.f, 0.9f));
 		controller = std::make_unique<ControllerComponent>(*actor, 
 			*actor->GetComponent<JumpComponent>(),
-			*actor->GetComponent<PhysicsBodyComponentD>()); // the wheel is first currently
+			*actor->GetComponent<PhysicsBodyComponentD>(),
+			actor->GetBody()); // the wheel is first currently
 	//	actor->SetScale(Vec2(100.f));
 	//	actor->GetComponent().SetPosition(Math::Vec2(0.5f, 0.f));
 		m_scene.Add(*actor);
@@ -58,11 +59,11 @@ namespace Game {
 		//	actor->Jump();
 			sum = 0.f;
 	
-			for (int i = 0; i < 20; ++i)
+		/*	for (int i = 0; i < 20; ++i)
 				testFactory->CreateTransformedV<PhysicalParticle>(Vec2(0.f), 0.f,
 					Vec2(Generators::g_random.Uniform(-0.1f,0.1f),Generators::g_random.Uniform(4.5f,8.2f)),
 					Resources::Load<sf::Texture>("wheel"),
-					Generators::g_random.Uniform(1.5f, 4.f), 0.1f);
+					Generators::g_random.Uniform(1.5f, 4.f), 0.1f);*/
 		}
 
 		// should probably happen after the draw

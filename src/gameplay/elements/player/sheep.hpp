@@ -13,13 +13,13 @@ namespace Game {
 	public:
 		Sheep(Math::Vec2 _position, const sf::Color& _color = sf::Color(0xffffffff));
 
-		void Jump() { m_jumpComponent.Jump(); }
 		//Balanciert gegen Gewichtskraft
 		void VBalance() { m_balancerComponent.VBalance(); }
 		//Balanciert gegen Normalkraft
 		void OBalance() { m_balancerComponent.OBalance(); }
 
 		int GetGroundContacts() const { return m_groundContacts; }
+		PhysicsBodyComponent& GetBody() { return m_body; }
 	private:
 		GlobalSpriteComponent m_wheelSprite;
 		SpriteComponent m_legSprite;

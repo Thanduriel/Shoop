@@ -11,12 +11,14 @@ namespace Game {
 	{
 	public:
 		ControllerComponent(Actor& _actor, JumpComponent& _jump, 
-			PhysicsBodyComponent& _wheelBody);
+			PhysicsBodyComponent& _wheelBody,
+			PhysicsBodyComponent& _headBody);
 
 		void Process(float _deltaTime) override;
 
 	private:
 		JumpComponent& m_jump;
+		PhysicsBodyComponent& m_headBody;
 		PhysicsBodyComponent& m_wheelBody;
 	};
 }
