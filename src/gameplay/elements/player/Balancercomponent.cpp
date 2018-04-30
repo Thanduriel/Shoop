@@ -6,7 +6,7 @@ namespace Game {
 
 	constexpr static float32 DEFAULT_GRAVITY = -9.81f;
 
-	BalancerComponent::BalancerComponent(Actor& _actor, PhysicsBodyComponentD& _targetBody)
+	BalancerComponent::BalancerComponent(Actor& _actor, PhysicsBodyComponent& _targetBody)
 		: ProcessComponent(_actor),
 		m_targetBody(_targetBody),
 		m_GForce(DEFAULT_GRAVITY),

@@ -7,7 +7,7 @@ namespace Game {
 	class BalancerComponent : public ProcessComponent
 	{
 	public:
-		BalancerComponent(Actor& _actor, PhysicsBodyComponentD& _targetBody);
+		BalancerComponent(Actor& _actor, PhysicsBodyComponent& _targetBody);
 
 		void Process(float _deltaTime) override;
 		void VBalance();
@@ -16,6 +16,6 @@ namespace Game {
 		float32 m_GForce;
 		float32 m_NForce;
 
-		PhysicsBodyComponentD& m_targetBody;
+		PhysicsBodyComponent& m_targetBody;
 	};
 }
