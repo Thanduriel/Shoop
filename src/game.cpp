@@ -9,6 +9,7 @@
 using namespace Graphics;
 
 Shoop::Shoop(int _sizeX, int _sizeY)
+	: m_targetFrameTime(1.f / 60.f)
 {
 	Device::Init(_sizeX, _sizeY);
 }
@@ -35,11 +36,11 @@ void Shoop::Run()
 				Device::GetWindow().close();
 		}
 
-		sf::Time elapsed = clock.restart();
-		Device::GetWindow().setTitle(std::to_string(elapsed.asSeconds()));;
+		const sf::Time frameTime = clock.restart();
+		Device::GetWindow().setTitle(std::to_string(frameTime.asSeconds()));;
 
 		Game::GameState* currentState = m_states.back().get();
-		currentState->Process(elapsed.asSeconds());
+		currentState->Process(frameTime.asSeconds());
 		
 		Device::GetWindow().clear(sf::Color(100, 149, 237));
 		currentState->Draw(Device::GetWindow());
@@ -53,7 +54,9 @@ void Shoop::Run()
 		// currentState could be invalid at this point, but the address is still correct
 		if (m_states.size() && currentState != m_states.back().get()) m_states.back()->OnBegin();
 
-		// temporary frame limiter; todo do better timing with frame cap
-		sf::sleep(sf::milliseconds(8));
+		// limit frame rate
+		const sf::Time workTime = clock.getElapsedTime();
+		const sf::Time wait = sf::seconds(m_targetFrameTime) - workTime;
+		if(wait.asMilliseconds() > 1) sf::sleep(wait);
 	}
 }

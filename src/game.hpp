@@ -16,4 +16,6 @@ public:
 	void Run();
 private:
 	std::vector<std::unique_ptr<Game::GameState>> m_states;
+
+	float m_targetFrameTime;
 };
