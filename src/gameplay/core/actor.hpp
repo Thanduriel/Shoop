@@ -25,13 +25,21 @@ namespace Game {
 		std::vector<Component*>& GetComponents() { return m_components; }
 
 		// Returns the first component of type T associated with this actor.
-		template<typename T, typename = std::enable_if_t<std::is_base_of_v<Component,T>>>
+		// This is really slow! If you need a component multiple times keep the pointer.
+		template<typename T, unsigned Skip = 0, typename = std::enable_if_t<std::is_base_of_v<Component,T>>>
 		T* GetComponent()
 		{
+			unsigned num = Skip;
+
 			const std::type_info& tInfo = typeid(T);
 			for (Component* comp : m_components)
 				if (tInfo == typeid(*comp))
-					return static_cast<T*>(comp);
+				{
+					if (!num)
+						return static_cast<T*>(comp);
+					else
+						--num;
+				}
 			
 			return nullptr;
 		}

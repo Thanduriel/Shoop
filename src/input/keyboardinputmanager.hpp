@@ -1,32 +1,21 @@
-//
-// Created by jinxpliskin on 11/16/17.
-//
 #pragma once
 
 #include "SFML/Window.hpp"
+#include "actions.hpp"
+#include "inputmanager.hpp"
 
 namespace Input
 {
 
-	class KeyboardInputManager
+	class KeyBoardInputInterface : public InputInterface
 	{
 	public:
-		static bool Pressed(sf::Keyboard::Key _key);
-		static bool Upward(sf::Keyboard::Key _key);
-		static bool Downward(sf::Keyboard::Key _key);
+		KeyBoardInputInterface();
 
-		static void UpdateKeys();
+		bool IsKeyPressed(Action _action) const override;
+		float GetAxis(Axis _axis) const override;
 
 	private:
-		static bool m_initialized;
-		static int m_keyCount;
-		static bool* m_previousKeyIsPressed;
-		static bool* m_currentKeyIsPressed;
-
-		static void Initialize();
-
-		// Disallow creating an instance of this object
-		KeyboardInputManager() {};
+		InputMap<sf::Keyboard::Key, sf::Keyboard::Key::KeyCount> m_inputMap;
 	};
-
 }

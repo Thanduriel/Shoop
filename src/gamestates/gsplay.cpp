@@ -10,7 +10,8 @@
 #include "gameplay/elements/physicalparticle.hpp"
 #include "generators/random.hpp"
 #include "gameplay/elements/factory.hpp"
-#include "gameplay/elements/player/controllercomponent.hpp"
+#include "gameplay/elements/player/playercontrollercomponent.hpp"
+#include "input/keyboardinputmanager.hpp"
 
 namespace Game {
 
@@ -18,7 +19,9 @@ namespace Game {
 
 	Sheep* actor;
 	std::unique_ptr<FactoryComponent> testFactory;
-	std::unique_ptr<ControllerComponent> controller;
+	std::unique_ptr<PlayerControllerComponent> controller;
+
+	Input::KeyBoardInputInterface input;
 
 	GSPlay::GSPlay()
 	{
@@ -26,10 +29,7 @@ namespace Game {
 		m_scene.Add(*wall);
 		actor = new Sheep(Graphics::Device::GetSizeWorldSpace() * 0.5f);
 		testFactory = std::make_unique<FactoryComponent>(*actor, Vec2(0.f, 0.9f));
-		controller = std::make_unique<ControllerComponent>(*actor, 
-			*actor->GetComponent<JumpComponent>(),
-			*actor->GetComponent<PhysicsBodyComponentD>(),
-			actor->GetBody()); // the wheel is first currently
+		controller = std::make_unique<PlayerControllerComponent>(*actor, input);
 	//	actor->SetScale(Vec2(100.f));
 	//	actor->GetComponent().SetPosition(Math::Vec2(0.5f, 0.f));
 		m_scene.Add(*actor);

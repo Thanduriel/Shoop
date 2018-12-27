@@ -10,13 +10,9 @@ namespace Game {
 	class ControllerComponent : public ProcessComponent
 	{
 	public:
-		ControllerComponent(Actor& _actor, JumpComponent& _jump, 
-			PhysicsBodyComponent& _wheelBody,
-			PhysicsBodyComponent& _headBody);
+		ControllerComponent(Actor& _actor);
 
-		void Process(float _deltaTime) override;
-
-	private:
+	protected:
 		JumpComponent& m_jump;
 		PhysicsBodyComponent& m_headBody;
 		PhysicsBodyComponent& m_wheelBody;

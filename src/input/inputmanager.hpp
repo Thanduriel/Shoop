@@ -1,35 +1,38 @@
-//
-// Created by jinxpliskin on 11/15/17.
-//
 #pragma once
 
 #include <string>
 #include <array>
-#include <variant>
-#include "device.hpp"
-#include "abstactinput.hpp"
+#include "inputdevice.hpp"
+#include "actions.hpp"
 
 namespace Input
 {
-	/* ******************************
-	 * Global manager for Input Queries
-	 */
-	class InputManager
+	class InputInterface
 	{
 	public:
-		enum Mode {Pressed, Downward, Upward};
+		virtual bool IsKeyPressed(Action _action) const = 0;
+		virtual float GetAxis(Axis _axis) const = 0;
+	};
 
-		static float GetAxis(Axis _axisName);
-		static float GetAxis(Axis _axisName, Device _device);
-		static bool GetKeyUpward(Key _keyName);
-		static bool GetKeyUpward(Key _keyName, Device _device) { return GetKey(_keyName, _device, Upward); }
-		static bool GetKeyDownward(Key _keyName);
-		static bool GetKeyDownward(Key _keyName, Device _device) { return GetKey(_keyName, _device, Downward); }
-		static bool GetKeyPressed(Key _keyName);
-		static bool GetKeyPressed(Key _keyName, Device _device) { return GetKey(_keyName, _device, Pressed); }
+	/* ******************************
+	 * 
+	 */
+	template<typename T, T Default>
+	class InputMap
+	{
+	public:
+		InputMap(std::initializer_list<std::pair<const Action, T>> _init)
+			: m_keyMap(_init)
+		{}
 
-		static bool GetKey(Key _keyName, Device _device, Mode _mode);
+		T GetKey(Action _action) const 
+		{
+			auto it = m_keyMap.find(_action);
+
+			return it != m_keyMap.end() ? it->second : Default;
+		}
 
 	private:
+		std::unordered_map<Action, T> m_keyMap;
 	};
 }

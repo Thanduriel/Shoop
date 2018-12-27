@@ -12,6 +12,7 @@ Shoop::Shoop(int _sizeX, int _sizeY)
 	: m_targetFrameTime(1.f / 60.f)
 {
 	Device::Init(_sizeX, _sizeY);
+	Device::GetWindow().setKeyRepeatEnabled(false);
 }
 
 // explicit definition here for the destructor of GameState

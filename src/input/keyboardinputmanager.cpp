@@ -1,53 +1,33 @@
-//
-// Created by jinxpliskin on 11/16/17.
-//
-
 #include "keyboardinputmanager.hpp"
 
 namespace Input
 {
-	bool KeyboardInputManager::m_initialized;
-	int KeyboardInputManager::m_keyCount;
-	bool* KeyboardInputManager::m_previousKeyIsPressed;
-	bool* KeyboardInputManager::m_currentKeyIsPressed;
+	using Key = sf::Keyboard::Key;
 
-	void KeyboardInputManager::Initialize()
+	KeyBoardInputInterface::KeyBoardInputInterface()
+		: m_inputMap({ 
+			{Action::Jump, Key::Space},
+			{Action::AccelerateCW, Key::Up},
+			{Action::AccelerateCCW, Key::Down},
+			{Action::RotateCW, Key::Left},
+			{Action::RotateCCW, Key::Right} })
+	{}
+
+	bool KeyBoardInputInterface::IsKeyPressed(Action _action) const
 	{
-		KeyboardInputManager::m_keyCount = (int) sf::Keyboard::KeyCount;
-		m_previousKeyIsPressed = new bool[m_keyCount];
-		m_currentKeyIsPressed = new bool[m_keyCount];
-
-		m_initialized = true;
+		return sf::Keyboard::isKeyPressed(m_inputMap.GetKey(_action));
 	}
 
-	void KeyboardInputManager::UpdateKeys()
+	float KeyBoardInputInterface::GetAxis(Axis _axis) const
 	{
-		if (!m_initialized) { Initialize(); }
+		const AxisAction aa = AXIS_ACTIONS[static_cast<size_t>(_axis)];
 
-		for (int i = 0; i < m_keyCount; ++i) {
-			m_previousKeyIsPressed[i] = m_currentKeyIsPressed[i];
-			m_currentKeyIsPressed[i] = sf::Keyboard::isKeyPressed((sf::Keyboard::Key) i);
-		}
-	}
+		float axis = 0.f;
+		if (sf::Keyboard::isKeyPressed(m_inputMap.GetKey(aa.low)))
+			axis -= 1.f;
+		if (sf::Keyboard::isKeyPressed(m_inputMap.GetKey(aa.high)))
+			axis += 1.f;
 
-	bool KeyboardInputManager::Pressed(sf::Keyboard::Key _key)
-	{
-		if (!m_initialized) { Initialize(); }
-
-		return m_currentKeyIsPressed[(int) _key];
-	}
-
-	bool KeyboardInputManager::Upward(sf::Keyboard::Key _key)
-	{
-		if (!m_initialized) { Initialize(); }
-
-		return m_previousKeyIsPressed[(int) _key] && !m_currentKeyIsPressed[(int) _key];
-	}
-
-	bool KeyboardInputManager::Downward(sf::Keyboard::Key _key)
-	{
-		if (!m_initialized) { Initialize(); }
-
-		return !m_previousKeyIsPressed[(int) _key] && m_currentKeyIsPressed[(int) _key];
+		return axis;
 	}
 }
