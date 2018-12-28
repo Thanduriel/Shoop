@@ -25,7 +25,8 @@ namespace Game {
 
 	GSPlay::GSPlay()
 	{
-		Actor* wall = new Wall(Graphics::Device::GetSizeWorldSpace() * Math::Vec2(0.5f, 0.1f), Math::Vec2(10.f, 1.f));
+
+		Actor* wall = new Wall(Graphics::Device::GetSizeWorldSpace() * Math::Vec2(0.5f, 0.1f), Math::Vec2(10.f, 1.f), PhysicsInfo::IsGround);
 		m_scene.Add(*wall);
 		actor = new Sheep(Graphics::Device::GetSizeWorldSpace() * 0.5f);
 		testFactory = std::make_unique<FactoryComponent>(*actor, Vec2(0.f, 0.9f));
@@ -41,8 +42,9 @@ namespace Game {
 		curve[1].y = 3.8f;
 		curve[2].y = 3.7f;
 		curve[4].y = 3.6f;
+		curve[5].y = 3.55f;
 		curve[6].y = 3.5f;
-		curve[7].y = 3.2f;
+		curve[7].y = 8.6f;
 
 		m_scene.Add(*new GroundPlane(generator.SampleSmooth<>(curve, 30)));
 	}

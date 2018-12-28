@@ -24,12 +24,14 @@ namespace Game {
 		static PhysicsInfo& Get(const b2Fixture& _fixture) {
 			return *static_cast<PhysicsInfo*>(_fixture.GetUserData());
 		}
-		enum Flags
+		enum Flag
 		{
 			IsLethal = 1 << 0,
 			IsGround = 1 << 1
 		};
-		unsigned flags = IsLethal;
+		using Flags = unsigned;
+
+		Flags flags = IsLethal;
 	};
 
 	// Wrapper for a b2 physics body.

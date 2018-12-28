@@ -3,7 +3,7 @@
 
 namespace Game {
 
-	Wall::Wall(Math::Vec2 _position, Math::Vec2 _size, bool _isLethal)
+	Wall::Wall(Math::Vec2 _position, Math::Vec2 _size, PhysicsInfo::Flags _flags)
 		: Actor(_position),
 		m_body(THISACTOR)
 	{
@@ -20,7 +20,7 @@ namespace Game {
 		fixture.restitution = 0.f;
 		fixture.shape = &shape;
 		
-		if (_isLethal) m_body.GetInfo().flags = PhysicsInfo::IsLethal;
+		m_body.GetInfo().flags = _flags;
 		m_body.Create(def, fixture);
 	}
 }

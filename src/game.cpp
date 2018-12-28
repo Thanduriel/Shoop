@@ -5,6 +5,7 @@
 #include "SFML/System.hpp"
 #include "graphics/device.hpp"
 #include "SFML/Graphics.hpp"
+#include "spdlog/spdlog.h"
 
 using namespace Graphics;
 
@@ -23,6 +24,8 @@ Shoop::~Shoop()
 
 void Shoop::Run()
 {
+	spdlog::info("Running the game");
+
 	m_states.emplace_back(new Game::GSPlay());
 
 	sf::Clock clock;

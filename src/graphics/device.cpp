@@ -1,5 +1,6 @@
 #include "device.hpp"
 #include "SFML/Graphics.hpp"
+#include "spdlog/spdlog.h"
 
 namespace Graphics {
 
@@ -9,6 +10,8 @@ namespace Graphics {
 
 	void Device::Init(int _sizeX, int _sizeY)
 	{
+		spdlog::info("Initializing graphics device");
+
 		m_window = new sf::RenderWindow();
 		Resize(_sizeX, _sizeY);
 	}

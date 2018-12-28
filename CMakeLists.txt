@@ -64,3 +64,6 @@ include_directories("dependencies/Box2D/Box2D")
 file(GLOB_RECURSE BOX2D_SOURCE_FILES "dependencies/Box2D/Box2D/Box2D/*.h" "dependencies/Box2D/Box2D/Box2D/*.cpp")
 add_library(Box2D STATIC ${BOX2D_SOURCE_FILES})
 target_link_libraries(shoop Box2D)
+
+#spdlog
+include_directories("dependencies/spdlog/include")
