@@ -1,5 +1,7 @@
 #pragma once
 
+#include "utils/config.hpp"
+
 #include <memory>
 #include <vector>
 
@@ -18,4 +20,5 @@ private:
 	std::vector<std::unique_ptr<Game::GameState>> m_states;
 
 	float m_targetFrameTime;
+	Utils::Config m_config;
 };

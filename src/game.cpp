@@ -10,7 +10,8 @@
 using namespace Graphics;
 
 Shoop::Shoop(int _sizeX, int _sizeY)
-	: m_targetFrameTime(1.f / 60.f)
+	: m_targetFrameTime(1.f / 60.f),
+	m_config(Utils::CONFIG_PATH)
 {
 	Device::Init(_sizeX, _sizeY);
 	Device::GetWindow().setKeyRepeatEnabled(false);
