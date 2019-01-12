@@ -1,4 +1,5 @@
 #include "gsplay.hpp"
+#include "utils/config.hpp"
 
 // test related
 #include "gameplay/elements/spriteomponent.hpp"
@@ -21,10 +22,9 @@ namespace Game {
 	std::unique_ptr<FactoryComponent> testFactory;
 	std::unique_ptr<PlayerControllerComponent> controller;
 
-	Input::KeyBoardInputInterface input;
-
-	GSPlay::GSPlay()
+	GSPlay::GSPlay(const Utils::Config& _config)
 	{
+		static Input::KeyBoardInputInterface input(_config.GetSection("keyboard1"));
 
 		Actor* wall = new Wall(Graphics::Device::GetSizeWorldSpace() * Math::Vec2(0.5f, 0.1f), Math::Vec2(10.f, 1.f), PhysicsInfo::IsGround);
 		m_scene.Add(*wall);

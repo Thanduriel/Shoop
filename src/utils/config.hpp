@@ -1,6 +1,5 @@
 #pragma once
 
-#include "spdlog//spdlog.h"
 #include "resources.hpp"
 
 #include <string_view>
@@ -30,14 +29,13 @@ namespace Utils {
 		ConfigSection() = default;
 
 		template<typename T>
-		T GetValue(std::string_view _name)
+		T GetValue(const std::string& _name) const
 		{
-			auto it = m_values.find(_name);
+			const auto it = m_values.find(_name);
 
 			if (it != m_values.end())
 				return Convert<T>(it->second);
 			else return T{};
-			//spdlog::error("Could not read config value with key: " + _name);
 		}
 	private:
 		template<typename T>
@@ -68,6 +66,7 @@ namespace Utils {
 
 		void Save(const std::string& _fileName);
 
+		const ConfigSection& GetSection(const std::string& _name) const { return m_sections.at(_name); };
 		ConfigSection& GetSection(const std::string& _name) { return m_sections[_name]; };
 
 		template<typename T>

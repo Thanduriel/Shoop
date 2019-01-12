@@ -1,8 +1,9 @@
 #include "keyboardinputmanager.hpp"
 
+using Key = sf::Keyboard::Key;
+
 namespace Input
 {
-	using Key = sf::Keyboard::Key;
 	using namespace std::string_literals;
 	using namespace Utils;
 
@@ -16,21 +17,21 @@ namespace Input
 	} });
 
 	const Utils::ConfigSection::Initializer<sf::Keyboard::Key, 5> Keyboard2(
-		{ {
-			{"Jump", Key::Space},
-			{"AccelerateCW", Key::W},
-			{"AccelerateCCW", Key::S},
-			{"RotateCW", Key::A},
-			{"RotateCCW", Key::D}
-		} });
+	{ {
+		{"Jump", Key::Space},
+		{"AccelerateCW", Key::W},
+		{"AccelerateCCW", Key::S},
+		{"RotateCW", Key::A},
+		{"RotateCCW", Key::D}
+	} });
 
-	KeyBoardInputInterface::KeyBoardInputInterface()
+	KeyBoardInputInterface::KeyBoardInputInterface(const ConfigSection& _config)
 		: m_inputMap({ 
-			{Action::Jump, Key::Space},
-			{Action::AccelerateCW, Key::Up},
-			{Action::AccelerateCCW, Key::Down},
-			{Action::RotateCW, Key::Left},
-			{Action::RotateCCW, Key::Right} })
+			{Action::Jump, _config.GetValue<Key>("Jump")},
+			{Action::AccelerateCW, _config.GetValue<Key>("AccelerateCW")},
+			{Action::AccelerateCCW, _config.GetValue<Key>("AccelerateCCW")},
+			{Action::RotateCW, _config.GetValue<Key>("RotateCW")},
+			{Action::RotateCCW, _config.GetValue<Key>("RotateCCW")} })
 	{}
 
 	bool KeyBoardInputInterface::IsKeyPressed(Action _action) const
@@ -50,4 +51,13 @@ namespace Input
 
 		return axis;
 	}
+}
+
+std::istream& operator >> (std::istream& _in, Key& _key)
+{
+	int i;
+	_in >> i;
+	_key = static_cast<Key>(i);
+
+	return _in;
 }

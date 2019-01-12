@@ -70,7 +70,7 @@ namespace Utils {
 		if (begin == std::string::npos || end == std::string::npos)
 			throw "expected \"[name]\" but found: "s + line;
 
-		const std::string name = line.substr(begin + 1, end - begin);
+		const std::string name = line.substr(begin + 1, end - begin-1);
 		std::unordered_map<std::string, std::string> values;
 
 		// key value pairs
@@ -82,7 +82,7 @@ namespace Utils {
 
 			if (pos == string::npos) continue;
 
-			values[line.substr(0, pos - 1)] = line.substr(pos+1);
+			values[line.substr(0, pos)] = line.substr(pos+1);
 		}
 
 		return { name, values };

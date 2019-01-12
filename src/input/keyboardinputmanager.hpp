@@ -11,7 +11,7 @@ namespace Input
 	class KeyBoardInputInterface : public InputInterface
 	{
 	public:
-		KeyBoardInputInterface();
+		KeyBoardInputInterface(const Utils::ConfigSection& _config);
 
 		bool IsKeyPressed(Action _action) const override;
 		float GetAxis(Axis _axis) const override;
@@ -23,3 +23,5 @@ namespace Input
 	const extern Utils::ConfigSection::Initializer<sf::Keyboard::Key, 5> Keyboard1;
 	const extern Utils::ConfigSection::Initializer<sf::Keyboard::Key, 5> Keyboard2;
 }
+
+std::istream& operator >> (std::istream& _in, sf::Keyboard::Key& _key);

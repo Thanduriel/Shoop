@@ -27,7 +27,7 @@ void Shoop::Run()
 {
 	spdlog::info("Running the game");
 
-	m_states.emplace_back(new Game::GSPlay());
+	m_states.emplace_back(new Game::GSPlay(m_config));
 
 	sf::Clock clock;
 
