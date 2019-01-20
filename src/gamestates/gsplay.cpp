@@ -13,6 +13,7 @@
 #include "gameplay/elements/factory.hpp"
 #include "gameplay/elements/player/playercontrollercomponent.hpp"
 #include "input/keyboardinputmanager.hpp"
+#include "gameplay/maps/map.hpp"
 
 namespace Game {
 
@@ -26,8 +27,6 @@ namespace Game {
 	{
 		static Input::KeyBoardInputInterface input(_config.GetSection("keyboard1"));
 
-		Actor* wall = new Wall(Graphics::Device::GetSizeWorldSpace() * Math::Vec2(0.5f, 0.1f), Math::Vec2(10.f, 1.f), PhysicsInfo::IsGround);
-		m_scene.Add(*wall);
 		actor = new Sheep(Graphics::Device::GetSizeWorldSpace() * 0.5f);
 		testFactory = std::make_unique<FactoryComponent>(*actor, Vec2(0.f, 0.9f));
 		controller = std::make_unique<PlayerControllerComponent>(*actor, input);
@@ -46,7 +45,8 @@ namespace Game {
 		curve[6].y = 3.5f;
 		curve[7].y = 8.6f;
 
-		m_scene.Add(*new GroundPlane(generator.SampleSmooth<>(curve, 30)));
+	//	m_scene.Add(*new GroundPlane(generator.SampleSmooth<>(curve, 30)));
+		Map map(m_scene);
 	}
 
 	void GSPlay::Process(float _deltaTime)

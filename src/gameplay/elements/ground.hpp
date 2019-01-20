@@ -10,7 +10,7 @@ namespace Game {
 	{
 	public:
 		// A physical ground line created from the given _curve.
-		GroundPlane(const Generators::Curve& _curve);
+		GroundPlane(const Generators::Curve& _curve, Math::Vec2 _position = Math::Vec2(0.f));
 	private:
 		PhysicsBodyComponentD m_body;
 	};

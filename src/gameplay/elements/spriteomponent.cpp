@@ -9,8 +9,9 @@ namespace Game {
 	using namespace Graphics;
 	using namespace Math;
 
-	SpriteComponent::SpriteComponent(Actor& _actor, const sf::Texture& _texture, Math::Vec2 _size, Math::Vec2 _origin)
-		: DrawComponent(_actor),
+	SpriteComponent::SpriteComponent(Actor& _actor, const sf::Texture& _texture, Math::Vec2 _size, 
+		Math::Vec2 _origin, DrawingOrder _drawingOrder)
+		: DrawComponent(_actor, _drawingOrder),
 		m_sprite(_texture)
 	{
 		const Math::Vec2 size(_texture.getSize());
@@ -23,9 +24,9 @@ namespace Game {
 	}
 
 	SpriteComponent::SpriteComponent(Actor& _actor, const sf::Texture& _texture, float _sizeX,
-		Math::Vec2 _origin)
+		Math::Vec2 _origin, DrawingOrder _drawingOrder)
 		: SpriteComponent(_actor, _texture, Math::Vec2(_sizeX, 
-			_sizeX * static_cast<float>(_texture.getSize().y) / _texture.getSize().x), _origin)
+			_sizeX * static_cast<float>(_texture.getSize().y) / _texture.getSize().x), _origin, _drawingOrder)
 	{
 
 	}

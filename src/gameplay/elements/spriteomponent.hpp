@@ -12,12 +12,14 @@ namespace Game {
 	public:
 		SpriteComponent(Actor& _actor, const sf::Texture& _texture, 
 			Math::Vec2 _size,
-			Math::Vec2 _origin = Math::Vec2(0.5f));
+			Math::Vec2 _origin = Math::Vec2(0.5f),
+			DrawingOrder _drawingOrder = DrawingOrder::Middle);
 
 		// Computes the size y to preserve the aspect ratio.
 		SpriteComponent(Actor& _actor, const sf::Texture& _texture,
 			float _sizeX,
-			Math::Vec2 _origin = Math::Vec2(0.5f));
+			Math::Vec2 _origin = Math::Vec2(0.5f),
+			DrawingOrder _drawingOrder = DrawingOrder::Middle);
 
 
 		void Draw(sf::RenderWindow& _window) override;

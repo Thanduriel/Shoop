@@ -8,14 +8,14 @@ namespace Game {
 
 	constexpr float SEGMENTS_PER_M = 1.6f;
 
-	GroundPlane::GroundPlane(const Generators::Curve& _curve)
-		: Actor(Vec2(0.f)),
+	GroundPlane::GroundPlane(const Generators::Curve& _curve, Vec2 _position)
+		: Actor(_position),
 		m_body(THISACTOR)
 	{
 		const int numSegments = static_cast<int>(_curve.size());
 
 		b2BodyDef def;
-		def.position = Vec2(0.f);
+		def.position = _position;
 		def.type = b2BodyType::b2_staticBody;
 
 		b2Vec2 vertices[3];
