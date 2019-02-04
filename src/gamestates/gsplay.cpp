@@ -34,18 +34,6 @@ namespace Game {
 	//	actor->GetComponent().SetPosition(Math::Vec2(0.5f, 0.f));
 		m_scene.Add(*actor);
 
-		using namespace Generators;
-		Generators::CurveGen generator;
-		Curve curve = generator.Generate(0xACCCC, 8, Vec2(11.f, 2.f), Vec2(14.f, 5.f));
-		curve[0].y = 8.f;
-		curve[1].y = 3.8f;
-		curve[2].y = 3.7f;
-		curve[4].y = 3.6f;
-		curve[5].y = 3.55f;
-		curve[6].y = 3.5f;
-		curve[7].y = 8.6f;
-
-	//	m_scene.Add(*new GroundPlane(generator.SampleSmooth<>(curve, 30)));
 		Map map(m_scene);
 	}
 
@@ -53,20 +41,7 @@ namespace Game {
 	{
 		m_scene.Process(_deltaTime);
 
-		static float sum = 0.f;
-
-		sum += _deltaTime;
-		if (sum > 1.15f)
-		{
-		//	actor->Jump();
-			sum = 0.f;
-	
-		/*	for (int i = 0; i < 20; ++i)
-				testFactory->CreateTransformedV<PhysicalParticle>(Vec2(0.f), 0.f,
-					Vec2(Generators::g_random.Uniform(-0.1f,0.1f),Generators::g_random.Uniform(4.5f,8.2f)),
-					Resources::Load<sf::Texture>("wheel"),
-					Generators::g_random.Uniform(1.5f, 4.f), 0.1f);*/
-		}
+		
 
 		// should probably happen after the draw
 		m_scene.CleanUp();

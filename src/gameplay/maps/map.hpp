@@ -1,5 +1,8 @@
 #pragma once
 
+#include "math/vector.hpp"
+#include <vector>
+
 namespace Game {
 
 	class Scene;
@@ -9,7 +12,8 @@ namespace Game {
 	public:
 		Map(Scene& _scene);
 		
-	private:
+		const std::vector<Math::Vec2>& GetSpawnPositions() const { return m_spawnPositions; }
+	protected:
 		enum Border {
 			Left = 0x1,
 			Right = 0x2,
@@ -19,5 +23,7 @@ namespace Game {
 		using BorderFlags = unsigned;
 
 		void MakeBorders(Scene& _scene, BorderFlags _borders = Left | Right | Top | Bot);
+
+		std::vector<Math::Vec2> m_spawnPositions;
 	};
 }

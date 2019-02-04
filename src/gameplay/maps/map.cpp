@@ -42,6 +42,8 @@ namespace Game {
 
 		// the original is at y = 16.f but the ground is to high then
 		_scene.Add(*new GroundPlane(generator.SampleSmooth<BlendCos>(curve, 26), Vec2(0.f, 15.f) * scale));
+
+		m_spawnPositions = { Vec2(5.0f, 50.0f) * scale, Vec2(75.0f, 50.0f) * scale };
 	}
 
 	void Map::MakeBorders(Scene& _scene, BorderFlags _borders)

@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <typeinfo>
+#include <type_traits>
 #include "math/transformation.hpp"
 
 namespace Game {
@@ -21,6 +22,28 @@ namespace Game {
 		// It will be removed at the end of the frame.
 		void Destroy() { m_isDestroyed = true; }
 		bool IsDestroyed() const { return m_isDestroyed; }
+
+		template<typename ActorT>
+		class HandleImpl
+		{
+			ActorT& operator*() { return *actor; }
+			const ActorT& operator*() const { return *actor; }
+
+			ActorT* operator->() { return &*actor; }
+			const ActorT* operator->() const { return &*actor; }
+
+			operator bool() const { return actor != nullptr; }
+		private:
+			HandleImpl(std::shared_ptr<ActorT*> _actor) : actor(std::move(_actor)) {}
+
+			friend class Actor;
+			std::shared_ptr<ActorT*> actor;
+		};
+
+		using Handle = HandleImpl<Actor>;
+		using ConstHandle = HandleImpl<const Actor>;
+		Handle GetHandle() { return Handle(m_handle); }
+		ConstHandle GetHandle() const { return ConstHandle(std::const_pointer_cast<const Actor*>(m_handle)); }
 
 		std::vector<Component*>& GetComponents() { return m_components; }
 
@@ -46,5 +69,7 @@ namespace Game {
 	private:
 		bool m_isDestroyed;
 		std::vector<Component*> m_components;
+
+		std::shared_ptr<Actor*> m_handle;
 	};
 }
