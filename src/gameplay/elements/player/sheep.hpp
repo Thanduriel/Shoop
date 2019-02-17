@@ -19,6 +19,10 @@ namespace Game {
 		void OBalance() { m_balancerComponent.OBalance(); }
 
 		int GetGroundContacts() const { return m_groundContacts; }
+
+		JumpComponent& GetJump() { return m_jumpComponent; }
+		PhysicsBodyComponent& GetBody() { return m_body; }
+		PhysicsBodyComponent& GetWheel() { return m_wheel; }
 	private:
 		GlobalSpriteComponent m_wheelSprite;
 		SpriteComponent m_legSprite;

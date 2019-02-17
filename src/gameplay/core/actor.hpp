@@ -23,25 +23,42 @@ namespace Game {
 		void Destroy() { m_isDestroyed = true; }
 		bool IsDestroyed() const { return m_isDestroyed; }
 
-		template<typename ActorT>
-		class HandleImpl
+		class Handle
 		{
-			ActorT& operator*() { return *actor; }
-			const ActorT& operator*() const { return *actor; }
+		public:
+			Handle() = default;
 
-			ActorT* operator->() { return &*actor; }
-			const ActorT* operator->() const { return &*actor; }
-
-			operator bool() const { return actor != nullptr; }
+			Actor& operator*() { return **ptr; }
+			const Actor& operator*() const { return **ptr; }
+			Actor* operator->() { return &**ptr; }
+			const Actor* operator->() const { return &**ptr; }
+			operator bool() const { return ptr != nullptr; }
 		private:
-			HandleImpl(std::shared_ptr<ActorT*> _actor) : actor(std::move(_actor)) {}
+			Handle(std::shared_ptr<Actor*> _actor) : ptr(std::move(_actor)) {}
 
 			friend class Actor;
-			std::shared_ptr<ActorT*> actor;
+			friend class ConstHandle;
+			std::shared_ptr<Actor*> ptr;
 		};
 
-		using Handle = HandleImpl<Actor>;
-		using ConstHandle = HandleImpl<const Actor>;
+		class ConstHandle
+		{
+		public:
+			ConstHandle() = default;
+			ConstHandle(const Handle& _oth)
+				: ConstHandle(std::const_pointer_cast<const Actor*>(_oth.ptr))
+			{}
+
+			const Actor& operator*() const { return **actor; }
+			const Actor* operator->() const { return &**actor; }
+			operator bool() const { return actor != nullptr; }
+		private:
+			ConstHandle(std::shared_ptr<const Actor*> _actor) : actor(std::move(_actor)) {}
+
+			friend class Actor;
+			std::shared_ptr<const Actor*> actor;
+		};
+
 		Handle GetHandle() { return Handle(m_handle); }
 		ConstHandle GetHandle() const { return ConstHandle(std::const_pointer_cast<const Actor*>(m_handle)); }
 

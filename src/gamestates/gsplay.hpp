@@ -3,11 +3,15 @@
 #include "gamestate.hpp"
 #include "gameplay/scene.hpp"
 
+
 namespace Utils {
 	class Config;
 }
 
 namespace Game {
+
+	class Map;
+	class Rules;
 
 	class GSPlay : public GameState
 	{
@@ -17,7 +21,9 @@ namespace Game {
 		void Process(float _deltaTime) override;
 		void Draw(sf::RenderWindow& _window) override;
 
-	private:
+	private: 
+
 		Scene m_scene;
+		std::unique_ptr<Rules> m_rules;
 	};
 }

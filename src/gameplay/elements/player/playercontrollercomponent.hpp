@@ -1,12 +1,15 @@
 #pragma once
 
 #include "controllercomponent.hpp"
+#include <vector> //todo: remove ControllerContainer
 
 namespace Input {
 	class InputInterface;
 }
 
 namespace Game {
+
+	using PlayerId = int;
 
 	class PlayerControllerComponent : public ControllerComponent
 	{
@@ -17,4 +20,7 @@ namespace Game {
 	private:
 		Input::InputInterface& m_input;
 	};
+
+	// will probably change
+	using ControllerContainer = std::vector<PlayerControllerComponent*>;
 }

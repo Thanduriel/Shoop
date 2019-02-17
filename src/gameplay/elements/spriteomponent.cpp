@@ -34,7 +34,7 @@ namespace Game {
 	void SpriteComponent::Draw(sf::RenderWindow& _window)
 	{
 		using namespace Math;
-		const Transformation transform = m_actor.Transform(*this);
+		const Transformation transform = m_actor->Transform(*this);
 		
 		Math::Vec2 p = transform.GetPosition();
 		m_sprite.setPosition(Device::ToScreenSpace(p));

@@ -1,5 +1,8 @@
 #include "gsplay.hpp"
 #include "utils/config.hpp"
+#include "gameplay/rules/classic.hpp"
+#include "gameplay/maps/map.hpp"
+#include "spdlog/spdlog.h"
 
 // test related
 #include "gameplay/elements/spriteomponent.hpp"
@@ -13,39 +16,48 @@
 #include "gameplay/elements/factory.hpp"
 #include "gameplay/elements/player/playercontrollercomponent.hpp"
 #include "input/keyboardinputmanager.hpp"
-#include "gameplay/maps/map.hpp"
 
 namespace Game {
 
 	using namespace Math;
 
-	Sheep* actor;
-	std::unique_ptr<FactoryComponent> testFactory;
-	std::unique_ptr<PlayerControllerComponent> controller;
+	std::unique_ptr<PlayerControllerComponent> controller1;
+	std::unique_ptr<PlayerControllerComponent> controller2;
+	ControllerContainer controllers;
 
 	GSPlay::GSPlay(const Utils::Config& _config)
+		: m_rules(new Classic(controllers, 42))
 	{
-		static Input::KeyBoardInputInterface input(_config.GetSection("keyboard1"));
+		spdlog::info("Creating main state");
 
-		actor = new Sheep(Graphics::Device::GetSizeWorldSpace() * 0.5f);
-		testFactory = std::make_unique<FactoryComponent>(*actor, Vec2(0.f, 0.9f));
-		controller = std::make_unique<PlayerControllerComponent>(*actor, input);
-	//	actor->SetScale(Vec2(100.f));
-	//	actor->GetComponent().SetPosition(Math::Vec2(0.5f, 0.f));
-		m_scene.Add(*actor);
+		Map* map = new Map(m_scene);
+		m_scene.Add(*map);
+		m_rules->SetMap(*map);
 
-		Map map(m_scene);
+		static Input::KeyBoardInputInterface input1(_config.GetSection("keyboard1"));
+	//	static Input::KeyBoardInputInterface input2(_config.GetSection("keyboard2"));
+
+		Sheep* sheep1 = new Sheep(Vec2());
+		Sheep* sheep2 = new Sheep(Vec2());
+		m_scene.Add(*sheep1);
+		m_scene.Add(*sheep2);
+		controller1 = std::make_unique<PlayerControllerComponent>(*sheep1, input1);
+		controller2 = std::make_unique<PlayerControllerComponent>(*sheep2, input1);
+		controllers.push_back(controller1.get());
+		controllers.push_back(controller2.get());
+
+		m_rules->Start();
 	}
 
 	void GSPlay::Process(float _deltaTime)
 	{
-		m_scene.Process(_deltaTime);
-
-		
-
-		// should probably happen after the draw
 		m_scene.CleanUp();
 		m_scene.RegisterActors();
+
+		m_scene.Process(_deltaTime);
+
+		m_rules->Process(_deltaTime);
+		if (m_rules->IsOver()) Finish();
 	}
 
 	void GSPlay::Draw(sf::RenderWindow& _window)

@@ -12,6 +12,7 @@ namespace Game {
 	using namespace Math;
 
 	Map::Map(Scene& _scene)
+		: m_factory(*this)
 	{
 		const Vec2 worldSize = Graphics::Device::GetSizeWorldSpace();
 		SpriteActor* act = new SpriteActor(worldSize*0.5f, 

@@ -20,7 +20,7 @@ namespace Game {
 		T& Create(Args&&... _args)
 		{
 			T* actor = new T(std::forward<Args>(_args)...);
-			m_createdActors.emplace_back(*actor);
+			m_createdActors.emplace_back(actor);
 
 			return *actor;
 		}
@@ -29,7 +29,7 @@ namespace Game {
 		template<typename T, typename... Args>
 		T& CreateTransformed(Math::Vec2 _position, float _rotation, Args&&... _args)
 		{
-			const Transformation transform = m_actor.Transform(*this);
+			const Transformation transform = m_actor->Transform(*this);
 
 			const Math::Vec2 p = transform.Transform(_position);
 
@@ -46,7 +46,7 @@ namespace Game {
 		T& CreateTransformedV(Math::Vec2 _position, float _rotation, Math::Vec2 _velocity, 
 			Args&&... _args)
 		{
-			const Transformation transform = m_actor.Transform(*this);
+			const Transformation transform = m_actor->Transform(*this);
 
 			const Math::Vec2 p = transform.Transform(_position);
 			const Math::Vec2 v = transform.GetRotated(_velocity);

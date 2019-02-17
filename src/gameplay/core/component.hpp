@@ -31,10 +31,12 @@ namespace Game {
 		Component& operator=(Component&) = delete;
 		Component& operator=(Component&&) = delete;
 		
-		Actor& GetActor() const { return m_actor; }
+		Actor& GetActor() const { return *m_actor; }
+		// move this component to another actor
+		void Attach(Actor& _actor);
 		Type GetType() const { return m_type; }
 	protected:
-		Actor& m_actor;
+		mutable Actor* m_actor;
 		const Type m_type;
 	};
 

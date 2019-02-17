@@ -13,6 +13,6 @@ namespace Game {
 	void LifetimeComponent::Process(float _deltaTime)
 	{
 		m_timeLeft -= _deltaTime;
-		if (m_timeLeft <= 0.f) m_actor.Destroy();
+		if (m_timeLeft <= 0.f) m_actor->Destroy();
 	}
 }

@@ -25,7 +25,7 @@ namespace Game {
 	{
 		Math::Quadratic fn;
 		const Math::Vec2 v = Math::Vec2(0.f, fn(m_charge / m_maxCharge)*m_maxStrength);
-		m_targetBody.Get().ApplyLinearImpulseToCenter( m_actor.GetRotated(v), true);
+		m_targetBody.Get().ApplyLinearImpulseToCenter( m_actor->GetRotated(v), true);
 
 		m_charge = 0.f;
 	}
