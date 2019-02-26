@@ -17,6 +17,7 @@ namespace Game {
 		virtual void Process(float _deltaTime) {}
 		virtual bool IsOver() = 0;
 		virtual void Start() {}
+		virtual std::string GetScore() { return "not implemented"; };
 
 	protected:
 		void SpawnPlayer(PlayerId _id, Math::Vec2 _position);

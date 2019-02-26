@@ -40,9 +40,15 @@ namespace Game {
 	void Classic::Start()
 	{
 		m_players.resize(2);
+		m_numWins.resize(2);
 		for (PlayerControllerComponent* controller : m_controllers)
 			controller->GetActor().Destroy();
 		ResetMap();
+	}
+
+	std::string Classic::GetScore()
+	{
+		return std::to_string(m_numWins[0]) + " : " + std::to_string(m_numWins[1]);
 	}
 
 	void Classic::ResetMap()

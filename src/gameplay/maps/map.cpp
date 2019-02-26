@@ -51,7 +51,7 @@ namespace Game {
 	{
 		const Vec2 worldSize = Graphics::Device::GetSizeWorldSpace();
 
-		const PhysicsInfo::Flags flags = 0;
+		constexpr PhysicsInfo::Flags flags = 0;
 
 		if (_borders & Border::Bot)
 			_scene.Add(*new Wall(worldSize * Vec2(0.5f, -0.05f), worldSize * Vec2(1.f, 0.1f), flags | PhysicsInfo::IsGround));

@@ -17,6 +17,7 @@ namespace Game {
 			m_component(THISACTOR, std::forward<Args>(_args)...)
 		{}
 
+		// direct access to the single component
 		const T& GetComponent() const { return m_component; }
 		T& GetComponent() { return m_component; }
 	private:

@@ -16,6 +16,9 @@
 #include "gameplay/elements/factory.hpp"
 #include "gameplay/elements/player/playercontrollercomponent.hpp"
 #include "input/keyboardinputmanager.hpp"
+#include "SFML/Graphics.hpp"
+#include "gameplay/core/singlecomponentactor.hpp"
+#include "gameplay/elements/textcomponent.hpp"
 
 namespace Game {
 
@@ -24,6 +27,7 @@ namespace Game {
 	std::unique_ptr<PlayerControllerComponent> controller1;
 	std::unique_ptr<PlayerControllerComponent> controller2;
 	ControllerContainer controllers;
+	TextComponent* scoreScreen;
 
 	GSPlay::GSPlay(const Utils::Config& _config)
 		: m_rules(new Classic(controllers, 42))
@@ -46,6 +50,11 @@ namespace Game {
 		controllers.push_back(controller1.get());
 		controllers.push_back(controller2.get());
 
+		auto scoreActor = new SingleComponentActor<TextComponent>(Graphics::Device::GetSizeWorldSpace() * Vec2(0.5f, 0.75f),
+			Resources::Load<sf::Font>("Anaktoria"), 64);
+		m_scene.Add(*scoreActor);
+		scoreScreen = &scoreActor->GetComponent();
+
 		m_rules->Start();
 	}
 
@@ -63,5 +72,7 @@ namespace Game {
 	void GSPlay::Draw(sf::RenderWindow& _window)
 	{
 		m_scene.Draw(_window);
+
+		scoreScreen->SetText(m_rules->GetScore());
 	}
 }

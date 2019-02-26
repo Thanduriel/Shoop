@@ -16,8 +16,8 @@ namespace Game {
 	{
 		const Math::Vec2 size(_texture.getSize());
 
-		Vec2 ratio = Device::GetWorldToScreenFactor() * _size / size;
-		m_baseScale = ratio / Device::GetWorldToScreenFactor();
+		const Vec2 ratio = _size / size;
+		m_baseScale = ratio;
 	//	m_sprite.setScale(m_baseScale);
 
 		m_sprite.setOrigin(Math::Vec2(size.x * _origin.x, size.y * _origin.y));
