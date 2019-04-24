@@ -28,7 +28,7 @@ namespace Game {
 		: SpriteComponent(_actor, _texture, Math::Vec2(_sizeX, 
 			_sizeX * static_cast<float>(_texture.getSize().y) / _texture.getSize().x), _origin, _drawingOrder)
 	{
-
+		
 	}
 
 	void SpriteComponent::Draw(sf::RenderWindow& _window)
@@ -42,6 +42,16 @@ namespace Game {
 		m_sprite.setRotation(-Math::ToDegree(transform.GetRotation()));
 
 		_window.draw(m_sprite);
+	}
+
+	void SpriteComponent::FlipX(bool _flip)
+	{
+		m_baseScale.x = std::abs(m_baseScale.x) * (_flip ? -1.f : 1.f);
+	}
+
+	void SpriteComponent::FlipY(bool _flip)
+	{
+		m_baseScale.y = std::abs(m_baseScale.y) * (_flip ? -1.f : 1.f);
 	}
 
 	void GlobalSpriteComponent::Draw(sf::RenderWindow& _window)

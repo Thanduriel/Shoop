@@ -24,6 +24,9 @@ namespace Game {
 
 		void Draw(sf::RenderWindow& _window) override;
 
+		void FlipX(bool _flip);
+		void FlipY(bool _flip);
+
 		// Direct access to the underlying sprite.
 		sf::Sprite& GetSprite() { return m_sprite; }
 	protected:

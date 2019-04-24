@@ -12,7 +12,7 @@ namespace Game {
 	public:
 		TextComponent(Actor& _actor, const sf::Font& _font,
 			unsigned _fontSize,
-			Math::Vec2 _origin = Math::Vec2(0.5f),
+			Math::Vec2 _origin = Math::Vec2(0.5f, 0.f),
 			DrawingOrder _drawingOrder = DrawingOrder::Front);
 
 		void Draw(sf::RenderWindow& _window) override;

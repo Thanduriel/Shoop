@@ -6,6 +6,8 @@
 
 namespace Game {
 
+	class Sheep;
+
 	class Rules
 	{
 	public:
@@ -20,7 +22,7 @@ namespace Game {
 		virtual std::string GetScore() { return "not implemented"; };
 
 	protected:
-		void SpawnPlayer(PlayerId _id, Math::Vec2 _position);
+		void SpawnPlayer(PlayerId _id, Math::Vec2 _position, bool _flip = false);
 		static bool IsDead(const Actor::ConstHandle& _handle);
 
 		std::vector<Actor::Handle> m_players;

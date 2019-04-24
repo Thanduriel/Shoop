@@ -20,6 +20,8 @@ namespace Game {
 
 		int GetGroundContacts() const { return m_groundContacts; }
 
+		void Flip(bool _flip);
+
 		JumpComponent& GetJump() { return m_jumpComponent; }
 		PhysicsBodyComponent& GetBody() { return m_body; }
 		PhysicsBodyComponent& GetWheel() { return m_wheel; }

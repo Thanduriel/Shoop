@@ -115,4 +115,11 @@ namespace Game {
 		m_wheel.SetOnContactBegin(groundBeginFn);
 		m_wheel.SetOnContactEnd(groundEndFn);
 	}
+
+	void Sheep::Flip(bool _flip)
+	{
+		m_legSprite.FlipX(_flip);
+		m_unicycleSprite.FlipX(_flip);
+		m_bodySprite.FlipX(_flip);
+	}
 }
