@@ -3,26 +3,42 @@
 
 namespace Game {
 
-	Classic::Classic(ControllerContainer& _controllers, int _numWins)
+	Classic::Classic(ControllerContainer& _controllers, int _numWins, float _waitTime)
 		: Rules(_controllers),
-		m_numWinsRequired(_numWins)
+		m_numWinsRequired(_numWins),
+		m_waitTime(_waitTime),
+		m_waitTimeLeft(0.f)
 	{
 
 	}
 
 	void Classic::Process(float _deltaTime)
 	{
-		if (std::any_of(m_players.begin(), m_players.end(), Rules::IsDead))
+		switch (m_state)
 		{
-			// register win
-			for (size_t i = 0; i < m_players.size(); ++i)
+		case State::Running:
+			if (std::any_of(m_players.begin(), m_players.end(), Rules::IsDead))
 			{
-				const Actor::Handle& player = m_players[i];
-				if (!Rules::IsDead(player))
-					++m_numWins[i];
-			}
+				// register win
+				for (size_t i = 0; i < m_players.size(); ++i)
+				{
+					const Actor::Handle& player = m_players[i];
+					if (!Rules::IsDead(player))
+						++m_numWins[i];
+				}
 
-			ResetMap();
+				m_state = State::Wait;
+				m_waitTimeLeft = m_waitTime;
+			}
+			break;
+		case State::Wait:
+			m_waitTimeLeft -= _deltaTime;
+			if (m_waitTimeLeft < 0.f)
+			{
+				ResetMap();
+				m_state = State::Running;
+			}
+			break;
 		}
 	}
 

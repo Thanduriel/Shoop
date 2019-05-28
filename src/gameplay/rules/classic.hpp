@@ -6,7 +6,7 @@ namespace Game {
 	class Classic : public Rules
 	{
 	public:
-		Classic(ControllerContainer& _controllers, int _numWins);
+		Classic(ControllerContainer& _controllers, int _numWins, float _waitTime = 2.f);
 
 		void Process(float _deltaTime) override;
 		bool IsOver() override;
@@ -17,5 +17,13 @@ namespace Game {
 
 		int m_numWinsRequired;
 		std::vector<int> m_numWins;
+
+		enum struct State {
+			Wait,
+			Running
+		};
+		State m_state = State::Running;
+		float m_waitTime;
+		float m_waitTimeLeft;
 	};
 }

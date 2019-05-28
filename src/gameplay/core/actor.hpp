@@ -51,7 +51,7 @@ namespace Game {
 
 			const Actor& operator*() const { return **actor; }
 			const Actor* operator->() const { return &**actor; }
-			operator bool() const { return actor != nullptr; }
+			operator bool() const { return actor && *actor; }
 		private:
 			ConstHandle(std::shared_ptr<const Actor*> _actor) : actor(std::move(_actor)) {}
 

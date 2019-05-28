@@ -6,14 +6,6 @@
 #include "gameplay/core/component.hpp"
 #include "Box2D/Box2D.h"
 #include "gameplay/core/actor.hpp"
-/*
-class b2World;
-struct b2BodyDef;
-struct b2JointDef;
-struct b2FixtureDef;
-class b2Body;
-class b2Fixture;
-class b2Joint;*/
 
 namespace Game {
 
@@ -102,6 +94,9 @@ namespace Game {
 		const PhysicsBodyComponent& m_target;
 	};
 
+#ifdef NDEBUG
+	using PhysicsBodyComponentD = PhysicsBodyComponent;
+#else
 	// Helper to simplify debug usage.
 	// Just use this type instead of a PhysicsBodyComponent
 	class PhysicsBodyComponentD : public PhysicsBodyComponent
@@ -115,6 +110,7 @@ namespace Game {
 	private:
 		PhysicsDebugComponent m_debugDraw;
 	};
+#endif
 
 	// The contact event manager
 	class ContactListener : public b2ContactListener

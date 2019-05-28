@@ -12,5 +12,7 @@ namespace Game {
 	Actor::~Actor()
 	{
 		*m_handle = nullptr;
+		for (Component* comp : m_components)
+			comp->m_actor = nullptr;
 	}
 }

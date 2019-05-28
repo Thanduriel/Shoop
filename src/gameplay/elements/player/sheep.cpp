@@ -69,7 +69,6 @@ namespace Game {
 		headFixture.density = 0.1f;
 		headFixture.restitution = 0.f;
 		headFixture.shape = &headShape;
-		headFixture.userData = this; // mark the head in some unique way
 
 		m_body.Create(def, { &bodyFixture, &headFixture });
 

@@ -39,13 +39,13 @@ namespace Game {
 		m_rules->SetMap(*map);
 
 		static Input::KeyBoardInputInterface input1(_config.GetSection("keyboard1"));
-	//	static Input::KeyBoardInputInterface input2(_config.GetSection("keyboard2"));
+		static Input::KeyBoardInputInterface input2(_config.GetSection("keyboard2"));
 
 		Sheep* sheep1 = new Sheep(Vec2());
 		Sheep* sheep2 = new Sheep(Vec2());
 		m_scene.Add(*sheep1);
 		m_scene.Add(*sheep2);
-		controller1 = std::make_unique<PlayerControllerComponent>(*sheep1, input1);
+		controller1 = std::make_unique<PlayerControllerComponent>(*sheep1, input2);
 		controller2 = std::make_unique<PlayerControllerComponent>(*sheep2, input1);
 		controllers.push_back(controller1.get());
 		controllers.push_back(controller2.get());

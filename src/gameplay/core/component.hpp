@@ -38,12 +38,15 @@ namespace Game {
 	protected:
 		mutable Actor* m_actor;
 		const Type m_type;
+
+		friend class Actor;
 	};
 
 	class ProcessComponent : public Component
 	{
 	public:
-		ProcessComponent(Actor& _actor, bool _canTick = true) : Component(_actor, Type::Process),m_canTick(_canTick) {}
+		ProcessComponent(Actor& _actor, bool _canTick = true) 
+			: Component(_actor, Type::Process),m_canTick(_canTick),m_isActive(true) {}
 
 		virtual void Process(float _deltaTime) = 0;
 

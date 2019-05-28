@@ -14,10 +14,14 @@ namespace Game {
 
 	void Component::Attach(Actor& _actor)
 	{
-		auto& components = m_actor->GetComponents();
-		auto it = std::find(components.begin(), components.end(), this);
-		assert(it != components.end());
-		components.erase(it);
+		// remove from last actor
+		if (m_actor)
+		{
+			auto& components = m_actor->GetComponents();
+			auto it = std::find(components.begin(), components.end(), this);
+			assert(it != components.end());
+			components.erase(it);
+		}
 
 		m_actor = &_actor;
 		_actor.GetComponents().push_back(this);
