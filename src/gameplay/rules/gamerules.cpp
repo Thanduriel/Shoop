@@ -22,6 +22,6 @@ namespace Game {
 
 	bool Rules::IsDead(const Actor::ConstHandle& _handle)
 	{
-		return !_handle || _handle->IsDestroyed();
+		return !_handle || _handle->IsDestroyed() || static_cast<const Sheep&>(*_handle).IsDead();
 	}
 }

@@ -91,11 +91,11 @@ namespace Game {
 	// **************************************************************** //
 	void Scene::Register(Component& _component)
 	{
+		if (!_component.ShouldRegister()) return;
 		switch (_component.GetType())
 		{
 		case Component::Type::Process: 
-			if(static_cast<ProcessComponent&>(_component).CanTick())
-				m_processComponents.emplace_back(static_cast<ProcessComponent&>(_component));
+			m_processComponents.emplace_back(static_cast<ProcessComponent&>(_component));
 			break;
 		case Component::Type::Draw:
 		{

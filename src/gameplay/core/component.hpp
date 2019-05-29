@@ -20,7 +20,7 @@ namespace Game {
 			Factory
 		};
 
-		Component(Actor& _actor, Type _type);
+		Component(Actor& _actor, Type _type, bool _shouldRegister = true);
 		virtual ~Component();
 		
 		// A component always requires an owning Actor.
@@ -35,9 +35,13 @@ namespace Game {
 		// move this component to another actor
 		void Attach(Actor& _actor);
 		Type GetType() const { return m_type; }
+		bool ShouldRegister() const { return m_shouldRegister; }
 	protected:
 		mutable Actor* m_actor;
 		const Type m_type;
+
+	private:
+		bool m_shouldRegister;
 
 		friend class Actor;
 	};
@@ -46,17 +50,17 @@ namespace Game {
 	{
 	public:
 		ProcessComponent(Actor& _actor, bool _canTick = true) 
-			: Component(_actor, Type::Process),m_canTick(_canTick),m_isActive(true) {}
+			: Component(_actor, Type::Process, _canTick), m_isActive(true) 
+		{
+		}
 
 		virtual void Process(float _deltaTime) = 0;
 
 		void SetActive(bool _active) { m_isActive = _active; }
 		bool IsActive() const { return m_isActive; }
 
-		bool CanTick() const { return m_canTick; }
 	protected:
-		// when set to false at time of register, this Components Process is never called.
-		const bool m_canTick;
+
 	private:
 		bool m_isActive;
 	};

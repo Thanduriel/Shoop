@@ -71,7 +71,7 @@ namespace Game {
 	{
 		for (size_t i = 0; i < m_players.size(); ++i)
 		{
-			if (!IsDead(m_players[i])) m_players[i]->Destroy();
+			if (m_players[i]) m_players[i]->Destroy();
 			SpawnPlayer(static_cast<int>(i), m_map->GetSpawnPositions()[i], i%2);
 		}
 	}

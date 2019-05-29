@@ -20,6 +20,8 @@ namespace Game {
 
 		int GetGroundContacts() const { return m_groundContacts; }
 
+		bool IsDead() const { return m_isDead; }
+		void Kill () { m_isDead = true; }
 		void Flip(bool _flip);
 
 		JumpComponent& GetJump() { return m_jumpComponent; }
@@ -37,5 +39,6 @@ namespace Game {
 		BalancerComponent m_balancerComponent;
 		
 		int m_groundContacts;
+		bool m_isDead = false;
 	};
 }

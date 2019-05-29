@@ -43,12 +43,13 @@ namespace Game {
 
 		Sheep* sheep1 = new Sheep(Vec2());
 		Sheep* sheep2 = new Sheep(Vec2());
-		m_scene.Add(*sheep1);
-		m_scene.Add(*sheep2);
 		controller1 = std::make_unique<PlayerControllerComponent>(*sheep1, input2);
 		controller2 = std::make_unique<PlayerControllerComponent>(*sheep2, input1);
 		controllers.push_back(controller1.get());
 		controllers.push_back(controller2.get());
+		// register after to also register the controllers
+		m_scene.Add(*sheep1);
+		m_scene.Add(*sheep2);
 
 		auto scoreActor = new SingleComponentActor<TextComponent>(Graphics::Device::GetSizeWorldSpace() * Vec2(0.5f, 0.75f),
 			Resources::Load<sf::Font>("Anaktoria"), 64);

@@ -66,6 +66,7 @@ namespace Game {
 
 		// Returns the first component of type T associated with this actor.
 		// This is really slow! If you need a component multiple times keep the pointer.
+		// @param Skip Number of matching components to ignore before returning.
 		template<typename T, unsigned Skip = 0, typename = std::enable_if_t<std::is_base_of_v<Component,T>>>
 		T* GetComponent()
 		{

@@ -27,8 +27,9 @@ namespace Game {
 		// todo: better adaptive torque
 		const Vec2 up = m_actor->GetRotated(Vec2(0.f, 1.f));
 		const float s = std::acos(std::abs(up.y)) * 0.4f;
+
 		if (m_input.IsKeyPressed(Action::RotateCW))
-			player.GetBody().Get().ApplyTorque(0.4f + s, true);
+			player.GetBody().Get().ApplyTorque((0.4f + s), true);
 		if (m_input.IsKeyPressed(Action::RotateCCW))
 			player.GetBody().Get().ApplyTorque(-(0.4f + s), true);
 
