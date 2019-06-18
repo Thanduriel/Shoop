@@ -1,6 +1,7 @@
 cmake_minimum_required (VERSION 3.8)
 project (shoop)
 set (CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # find all source and header files
 file(GLOB_RECURSE SOURCE_FILES "src/*.hpp" "src/*.cpp" "src/*.inl")
@@ -40,7 +41,7 @@ add_subdirectory("dependencies/SFML")
 # faster compilation with multithreading
 # cmake does not support vs compiler switches for std
 if(MSVC)
-	add_compile_options( /std:c++17 )
+	#add_compile_options( /std:c++17 )
 	
 	set(OPTIMIZATION_OPTIONS 
     $<$<CONFIG:Debug>:>

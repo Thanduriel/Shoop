@@ -91,7 +91,6 @@ namespace Game {
 			if (_slf.GetType() == b2Shape::Type::e_circle 
 				&&  PhysicsInfo::Get(_oth).flags & PhysicsInfo::IsLethal)
 			{
-				m_bodySprite.GetSprite().setColor(sf::Color(0xff0000ff));
 				Kill();
 			}
 		};
@@ -113,6 +112,13 @@ namespace Game {
 		};
 		m_wheel.SetOnContactBegin(groundBeginFn);
 		m_wheel.SetOnContactEnd(groundEndFn);
+	}
+
+	void Sheep::Kill()
+	{
+		m_isDead = true;
+		m_bodySprite.GetSprite().setColor(sf::Color(0xff0000ff));
+		m_legSprite.GetSprite().setColor(sf::Color(0xff0000ff));
 	}
 
 	void Sheep::Flip(bool _flip)

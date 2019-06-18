@@ -3,6 +3,7 @@
 #include <vector>
 #include <typeinfo>
 #include <type_traits>
+#include <memory>
 #include "math/transformation.hpp"
 
 namespace Game {

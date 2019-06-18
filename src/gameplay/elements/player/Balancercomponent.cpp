@@ -17,7 +17,8 @@ namespace Game {
 
 	void BalancerComponent::Process(float _deltaTime)
 	{
-		if (static_cast<Sheep&>(*m_actor).GetGroundContacts()) OBalance();
+		Sheep& sheep = static_cast<Sheep&>(*m_actor);
+		if (!sheep.IsDead() && sheep.GetGroundContacts()) OBalance();
 	}
 
 	//Balanciert gegen die Gewichtskraft

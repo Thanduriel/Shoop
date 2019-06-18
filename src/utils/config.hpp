@@ -8,8 +8,38 @@
 
 namespace Utils {
 
+	namespace Details {
+		template<typename T>
+		inline T Convert(const std::string& _value)
+		{
+			std::stringstream ss(_value);
+			T val;
+			ss >> val;
+
+			return val;
+		}
+
+		template<>
+		inline std::string Convert(const std::string& _value)
+		{
+			return _value;
+		}
+
+		template<typename T>
+		inline std::string Serialize(const T& _value)
+		{
+			std::stringstream ss;
+			ss << _value;
+
+			std::string s;
+			ss >> s;
+			return s;
+		}
+	}
+
 	class ConfigSection
 	{
+		friend class Config;
 	public:
 		template<typename T, size_t S>
 		using Initializer = std::array<std::pair<std::string, T>, S>;
@@ -18,7 +48,7 @@ namespace Utils {
 		ConfigSection(const Initializer<T,S>& _init)
 		{
 			for (auto&[key, value] : _init)
-				m_values[key] = Config::Serialize(value);
+				m_values[key] = Details::Serialize(value);
 		}
 
 		template<typename... Args>
@@ -34,28 +64,11 @@ namespace Utils {
 			const auto it = m_values.find(_name);
 
 			if (it != m_values.end())
-				return Convert<T>(it->second);
+				return Details::Convert<T>(it->second);
 			else return T{};
 		}
 	private:
-		template<typename T>
-		static T Convert(const std::string& _value)
-		{
-			std::stringstream ss(_value);
-			T val;
-			ss >> val;
-
-			return val;
-		}
-		template<>
-		static std::string Convert(const std::string& _value)
-		{
-			return _value;
-		}
-
 		std::unordered_map<std::string, std::string> m_values;
-
-		friend class Config;
 	};
 
 	class Config
@@ -68,17 +81,6 @@ namespace Utils {
 
 		const ConfigSection& GetSection(const std::string& _name) const { return m_sections.at(_name); };
 		ConfigSection& GetSection(const std::string& _name) { return m_sections[_name]; };
-
-		template<typename T>
-		static std::string Serialize(const T& _value)
-		{
-			std::stringstream ss;
-			ss << _value;
-
-			std::string s;
-			ss >> s;
-			return s;
-		}
 	private:
 		void CreateDefault();
 		// parser stuff
@@ -87,5 +89,5 @@ namespace Utils {
 		std::unordered_map<std::string, ConfigSection> m_sections;
 	};
 
-	constexpr char* CONFIG_PATH = CONTENTPATH("settings.ini");
+	constexpr const char* CONFIG_PATH = CONTENTPATH("settings.ini");
 }

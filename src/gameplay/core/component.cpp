@@ -1,6 +1,7 @@
 #include "component.hpp"
 #include "actor.hpp"
 #include "utils/assert.hpp"
+#include <algorithm>
 
 namespace Game {
 
