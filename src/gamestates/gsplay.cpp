@@ -19,6 +19,7 @@
 #include "SFML/Graphics.hpp"
 #include "gameplay/core/singlecomponentactor.hpp"
 #include "gameplay/elements/textcomponent.hpp"
+#include "input/gamepadinputmanager.hpp"
 
 namespace Game {
 
@@ -40,6 +41,7 @@ namespace Game {
 
 		static Input::KeyBoardInputInterface input1(_config.GetSection("keyboard1"));
 		static Input::KeyBoardInputInterface input2(_config.GetSection("keyboard2"));
+//		static Input::GamePadInputInterface input3(_config.GetSection("gamepad1"),0);
 
 		Sheep* sheep1 = new Sheep(Vec2());
 		Sheep* sheep2 = new Sheep(Vec2());

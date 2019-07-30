@@ -28,15 +28,19 @@ namespace Game {
 		const Vec2 up = m_actor->GetRotated(Vec2(0.f, 1.f));
 		const float s = std::acos(std::abs(up.y)) * 0.4f;
 
-		if (m_input.IsKeyPressed(Action::RotateCW))
+		const float rot = m_input.GetAxis(Axis::Rotate);
+		if(std::abs(rot) > 0.001f) player.GetBody().Get().ApplyTorque(rot * -(0.4f + s), true);
+/*		if (m_input.IsKeyPressed(Action::RotateCW))
 			player.GetBody().Get().ApplyTorque((0.4f + s), true);
 		if (m_input.IsKeyPressed(Action::RotateCCW))
-			player.GetBody().Get().ApplyTorque(-(0.4f + s), true);
+			player.GetBody().Get().ApplyTorque(-(0.4f + s), true);*/
 
-		if (m_input.IsKeyPressed(Action::AccelerateCCW))
+		const float acc = m_input.GetAxis(Axis::Accelerate);
+		if (std::abs(acc) > 0.001f) player.GetWheel().Get().ApplyTorque(-acc, true);
+/*		if (m_input.IsKeyPressed(Action::AccelerateCCW))
 			player.GetWheel().Get().ApplyTorque(1.f, true);
 		if (m_input.IsKeyPressed(Action::AccelerateCW))
-			player.GetWheel().Get().ApplyTorque(-1.f, true);;
+			player.GetWheel().Get().ApplyTorque(-1.f, true);;*/
 
 
 	}

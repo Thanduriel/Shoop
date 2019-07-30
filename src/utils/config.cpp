@@ -3,6 +3,7 @@
 
 // default config
 #include "input/keyboardinputmanager.hpp"
+#include "input/gamepadinputmanager.hpp"
 
 #include <sstream>
 #include <fstream>
@@ -11,6 +12,13 @@
 using namespace std::string_literals;
 
 namespace Utils {
+
+	ConfigSection& ConfigSection::operator+=(const ConfigSection& _other)
+	{
+		m_values.insert(_other.m_values.begin(), _other.m_values.end());
+
+		return *this;
+	}
 
 	Config::Config()
 	{
@@ -93,5 +101,7 @@ namespace Utils {
 		spdlog::info("creating default config");
 		m_sections["keyboard1"] = Input::Keyboard1;
 		m_sections["keyboard2"] = Input::Keyboard2;
+		m_sections["gamepad1"] = Input::Gamepad1Buttons;
+		m_sections["gamepad1"] += Input::Gamepad1Axis;
 	}
 }

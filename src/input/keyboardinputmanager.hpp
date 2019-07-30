@@ -20,8 +20,10 @@ namespace Input
 		InputMap<sf::Keyboard::Key, sf::Keyboard::Key::KeyCount> m_inputMap;
 	};
 
+	// default keyboard mappings
 	const extern Utils::ConfigSection::Initializer<sf::Keyboard::Key, 5> Keyboard1;
 	const extern Utils::ConfigSection::Initializer<sf::Keyboard::Key, 5> Keyboard2;
 }
 
+// allow reading of keys from a config
 std::istream& operator >> (std::istream& _in, sf::Keyboard::Key& _key);

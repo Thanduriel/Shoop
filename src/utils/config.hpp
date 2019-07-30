@@ -37,12 +37,16 @@ namespace Utils {
 		}
 	}
 
+	/* ******************************
+	 * A map of key-value pairs.
+	 */
 	class ConfigSection
 	{
 		friend class Config;
 	public:
 		template<typename T, size_t S>
 		using Initializer = std::array<std::pair<std::string, T>, S>;
+
 
 		template<typename T, size_t S>
 		ConfigSection(const Initializer<T,S>& _init)
@@ -67,6 +71,9 @@ namespace Utils {
 				return Details::Convert<T>(it->second);
 			else return T{};
 		}
+
+		// Add contents of another section.
+		ConfigSection& operator +=(const ConfigSection& _other);
 	private:
 		std::unordered_map<std::string, std::string> m_values;
 	};
@@ -74,7 +81,9 @@ namespace Utils {
 	class Config
 	{
 	public:
+		// Load the config  from a file with the given name.
 		Config(const std::string& _fileName);
+		// Create a config with default values.
 		Config();
 
 		void Save(const std::string& _fileName);

@@ -12,6 +12,7 @@ namespace Input
 		COUNT
 	};
 
+
 	enum struct Action
 	{
 		None,
@@ -34,7 +35,7 @@ namespace Input
 		COUNT
 	};
 
-	// map axis to pairs of actions on keyboards
+	// Map axis to pairs of actions on keyboards.
 	struct AxisAction
 	{
 		Action low;

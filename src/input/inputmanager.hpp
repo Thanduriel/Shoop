@@ -10,7 +10,10 @@ namespace Input
 	class InputInterface
 	{
 	public:
+		virtual ~InputInterface() {};
+
 		virtual bool IsKeyPressed(Action _action) const = 0;
+		// Axis values range from [-1,1].
 		virtual float GetAxis(Axis _axis) const = 0;
 	};
 

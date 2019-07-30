@@ -1,119 +1,57 @@
-//
-// Created by jinxpliskin on 11/16/17.
-//
-
-#include <SFML/Window/Joystick.hpp>
 #include "gamepadinputmanager.hpp"
+#include "utils/assert.hpp"
 
 namespace Input
 {
-	GamePadInputManager::GamePadInput::GamePadInput()
+	using namespace Utils;
+
+	const ConfigSection::Initializer<GamePadButton, 1> Gamepad1Buttons(
+		{ {
+			{"Jump", GamePadButton::RB},
+		} });
+
+	const ConfigSection::Initializer<sf::Joystick::Axis, 2> Gamepad1Axis(
+		{ {
+			{"Accelerate", sf::Joystick::Axis::U},
+			{"Rotate", sf::Joystick::Axis::X},
+		} });
+
+	GamePadInputInterface::GamePadInputInterface(const ConfigSection& _config, unsigned _id)
+		: m_inputMap({
+			{Action::Jump, _config.GetValue<GamePadButton>("Jump")} }),
+		m_axisMap(
+			{_config.GetValue<sf::Joystick::Axis>("Accelerate"),
+			_config.GetValue<sf::Joystick::Axis>("Rotate")}),
+		m_id(_id)
 	{
-		lt = -1.0F;
-		rt = -1.0F;
+		Assert(sf::Joystick::isConnected(_id), "Gamepad with the given id is not connected.");
 	}
 
-	GamePadInputManager::GamePadInput::~GamePadInput()
+	bool GamePadInputInterface::IsKeyPressed(Action _action) const
 	{
+		return sf::Joystick::isButtonPressed(m_id, static_cast<unsigned>(m_inputMap.GetKey(_action)));
 	}
 
-	GamePadInputManager::GamePadInput *GamePadInputManager::m_gamePadInputs;
-
-	const float GamePadInputManager::m_deadZone = 0.05F;
-	const int GamePadInputManager::m_numSupportedPads = 8;
-
-	bool GamePadInputManager::m_initialized;
-
-	int GamePadInputManager::m_numConnectedPads;
-
-	void GamePadInputManager::Initialize()
+	float GamePadInputInterface::GetAxis(Axis _axis) const
 	{
-		m_gamePadInputs = new GamePadInput[m_numSupportedPads];
-
-		sf::Joystick::update();
-
-		m_numConnectedPads = 0;
-		for (unsigned int i = 0; i < m_numSupportedPads; ++i)
-		{
-			if (sf::Joystick::isConnected(i))
-			{
-				RegisterPad(i);
-			}
-		}
-
-		m_initialized = true;
+		return sf::Joystick::getAxisPosition(m_id, m_axisMap[static_cast<size_t>(_axis)]) * 0.01f;
 	}
+}
 
-	void GamePadInputManager::RegisterPad(unsigned int _gamePadIndex)
-	{
-		if (!m_gamePadInputs[_gamePadIndex].doesExist)
-		{
-			m_gamePadInputs[_gamePadIndex].doesExist = true;
-			m_numConnectedPads++;
-		}
-	}
+std::istream& operator >> (std::istream& _in, Input::GamePadButton& _key)
+{
+	int i;
+	_in >> i;
+	_key = static_cast<Input::GamePadButton>(i);
 
-	void GamePadInputManager::UnregisterPad(unsigned int _gamePadIndex)
-	{
-		if (m_gamePadInputs[_gamePadIndex].doesExist)
-		{
-			m_gamePadInputs[_gamePadIndex].doesExist = false;
-			m_numConnectedPads--;
-		}
-	}
+	return _in;
+}
 
-	void GamePadInputManager::UpdateGamePads()
-	{
-		if(!m_initialized) { Initialize(); }
+std::istream& operator >> (std::istream& _in, sf::Joystick::Axis& _axis)
+{
+	int i = -1;
+	_in >> i;
+	_axis = static_cast<sf::Joystick::Axis>(i);
 
-		sf::Joystick::update();
-
-		for(unsigned int index = 0; index < m_numSupportedPads; ++index)
-		{
-			if(!sf::Joystick::isConnected(index))
-			{
-				UnregisterPad(index);
-			}
-			else
-			{
-				RegisterPad(index);
-
-				GamePadInput input = m_gamePadInputs[index];
-
-				for(int i = 0; i < (int)GamePadButton::COUNT; ++i)
-				{
-					input.previousButtonIsPressed[i] = input.currentButtonIsPressed[i];
-					input.currentButtonIsPressed[i] = sf::Joystick::isButtonPressed(index, i);
-				}
-
-				input.lt = sf::Joystick::getAxisPosition(index, sf::Joystick::Axis::Z) * 0.01F;
-				input.rt = sf::Joystick::getAxisPosition(index, sf::Joystick::Axis::R) * 0.01F;
-
-				m_gamePadInputs[index] = input;
-			}
-		}
-	}
-
-	float GamePadInputManager::Pressed(GamePadButton _button, unsigned int _gamePadIndex)
-	{
-		if (!m_initialized) { Initialize(); }
-
-		return m_gamePadInputs[_gamePadIndex].currentButtonIsPressed[(int)_button];
-	}
-
-	float GamePadInputManager::Upward(GamePadButton _button, unsigned int _gamePadIndex)
-	{
-		if (!m_initialized) { Initialize(); }
-
-		GamePadInput inputs = m_gamePadInputs[_gamePadIndex];
-		return inputs.previousButtonIsPressed[(int)_button] && !inputs.currentButtonIsPressed[(int)_button];
-	}
-
-	float GamePadInputManager::Downward(GamePadButton _button, unsigned int _gamePadIndex)
-	{
-		if (!m_initialized) { Initialize(); }
-
-		GamePadInput inputs = m_gamePadInputs[_gamePadIndex];
-		return !inputs.previousButtonIsPressed[(int)_button] && inputs.currentButtonIsPressed[(int)_button];
-	}
+	return _in;
 }

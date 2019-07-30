@@ -15,7 +15,7 @@ namespace Game {
 		// Add a dynamically created Actor to later be registered by the scene.
 		void Add(Actor& _actor);
 
-		// Creates a new Actor in place with the given arguments.
+		// Creates a new Actor in-place with the given arguments.
 		template<typename T, typename... Args>
 		T& Create(Args&&... _args)
 		{
@@ -25,7 +25,7 @@ namespace Game {
 			return *actor;
 		}
 
-		// Creates a new actor in place and applies the factory's transformation.
+		// Creates a new actor in-place and applies the factory's transformation.
 		template<typename T, typename... Args>
 		T& CreateTransformed(Math::Vec2 _position, float _rotation, Args&&... _args)
 		{
@@ -40,7 +40,7 @@ namespace Game {
 			return *actor;
 		}
 
-		// Creates a new actor in place and applies the factory's transformation.
+		// Creates a new actor in-place and applies the factory's transformation.
 		// Also rotates the given velocity.
 		template<typename T, typename... Args>
 		T& CreateTransformedV(Math::Vec2 _position, float _rotation, Math::Vec2 _velocity, 

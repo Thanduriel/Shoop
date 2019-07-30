@@ -1,68 +1,33 @@
-//
-// Created by jinxpliskin on 11/16/17.
-//
-
 #pragma once
 
-#include <array>
+#include <SFML/Window/Joystick.hpp>
+#include "actions.hpp"
+#include "inputmanager.hpp"
+#include "utils/config.hpp"
 
 namespace Input
 {
 	enum GamePadButton { A, B, X, Y, LB, RB, Select, Start, COUNT };
 
-	class GamePadInputManager
+	class GamePadInputInterface : public InputInterface
 	{
 	public:
-		static float Pressed(GamePadButton _button, unsigned int _gamePadIndex);
-		static float Upward(GamePadButton _button, unsigned int _gamePadIndex);
-		static float Downward(GamePadButton _button, unsigned int _gamePadIndex);
+		GamePadInputInterface(const Utils::ConfigSection& _config, unsigned _id);
 
-		//static Vector2 GetLeftStick(unsigned int _gamePadIndex);
-		//static Vector2 GetRightStick(unsigned int _gamePadIndex);
-
-		static int GetNumConnectedGamePads();
-		static bool IsConnected(unsigned int _gamePadIndex);
-
-		static void UpdateGamePads();
+		bool IsKeyPressed(Action _action) const override;
+		float GetAxis(Axis _axis) const override;
 
 	private:
-		static void Initialize();
-		static void RegisterPad(unsigned int _gamePadIndex);
-		static void UnregisterPad(unsigned int _gamePadIndex);
-
-		struct GamePadInput
-		{
-		public:
-			GamePadInput();
-			~GamePadInput();
-
-			bool doesExist;
-
-			//Vector2 leftStick;
-			//Vector2 rightStick;
-
-			// -1, when released. 1, when pressed.
-			float lt;
-			float rt;
-
-			std::array<bool, (int)GamePadButton::COUNT> previousButtonIsPressed;
-			std::array<bool, (int)GamePadButton::COUNT> currentButtonIsPressed;
-
-		};
-
-		static GamePadInput* m_gamePadInputs;
-
-		static const float m_deadZone;
-		static const int m_numSupportedPads;
-
-		static bool m_initialized;
-
-		static int m_numConnectedPads;
-
-		//static Vector2 AdjustByDeadZone(Vector2 v) {	if(v.lengthSqr < m_deadZone) {Vector2.Zero;} else {return v;} }
-
-		// Disallow creating an instance of this object
-		GamePadInputManager() {};
+		InputMap<GamePadButton, GamePadButton::COUNT> m_inputMap;
+		std::array<sf::Joystick::Axis, 2> m_axisMap;
+		unsigned m_id;
 	};
 
+	// default gamepad mappings
+	const extern Utils::ConfigSection::Initializer<GamePadButton, 1> Gamepad1Buttons;
+	const extern Utils::ConfigSection::Initializer<sf::Joystick::Axis, 2> Gamepad1Axis;
 }
+
+// allow reading of keys from a config
+std::istream& operator >> (std::istream& _in, Input::GamePadButton& _key);
+std::istream& operator >> (std::istream& _in, sf::Joystick::Axis& _axis);
