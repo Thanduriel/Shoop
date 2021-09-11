@@ -27,17 +27,6 @@ if(MSVC)
 	add_compile_options( /MP )
 endif(MSVC)
 
-# SFML config: use dynamic libs; skip examples and the network module
-set(SFML_BUILD_GRAPHICS TRUE)
-set(SFML_BUILD_WINDOW TRUE)
-set(BUILD_SHARED_LIBS TRUE)
-set(SFML_BUILD_AUDIO FALSE)
-set(SFML_BUILD_EXAMPLES FALSE)
-set(SFML_BUILD_DOC FALSE)
-set(SFML_BUILD_NETWORK FALSE)
-
-add_subdirectory("dependencies/SFML")
-
 include_directories("src")
 add_executable(shoop ${SOURCE_FILES})
 
@@ -57,7 +46,20 @@ else()
 endif(MSVC)
 
 #SFML
-include_directories("dependencies/SFML/include")
+# SFML config: use dynamic libs; skip examples and the network module
+find_package(SFML COMPONENTS system graphics window QUIET)
+if (NOT SFML_FOUND)
+	message("SFML not found. Attempting to use local version.")
+	set(SFML_BUILD_GRAPHICS TRUE)
+	set(SFML_BUILD_WINDOW TRUE)
+	set(BUILD_SHARED_LIBS TRUE)
+	set(SFML_BUILD_AUDIO FALSE)
+	set(SFML_BUILD_EXAMPLES FALSE)
+	set(SFML_BUILD_DOC FALSE)
+	set(SFML_BUILD_NETWORK FALSE)
+	target_include_directories(shoop PRIVATE "dependencies/SFML/include")
+	add_subdirectory("dependencies/SFML")
+endif(NOT SFML_FOUND)
 target_link_libraries(shoop sfml-system sfml-graphics sfml-window)
 
 #box2d
