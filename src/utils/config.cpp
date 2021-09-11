@@ -4,12 +4,21 @@
 // default config
 #include "input/keyboardinputmanager.hpp"
 #include "input/gamepadinputmanager.hpp"
+#include "graphics/device.hpp"
 
 #include <sstream>
 #include <fstream>
 #include <string>
 
 using namespace std::string_literals;
+
+namespace Game {
+	const Utils::ConfigSection::Initializer<int, 2> GamplaySettings(
+		{ {
+			{"autoChargeJump", 0},
+			{"numWinsRequired", 11}
+		} });
+}
 
 namespace Utils {
 
@@ -103,5 +112,7 @@ namespace Utils {
 		m_sections["keyboard2"] = Input::Keyboard2;
 		m_sections["gamepad1"] = Input::Gamepad1Buttons;
 		m_sections["gamepad1"] += Input::Gamepad1Axis;
+		m_sections["video"] = Graphics::VideoSettings;
+		m_sections["gameplay"] = Game::GamplaySettings;
 	}
 }

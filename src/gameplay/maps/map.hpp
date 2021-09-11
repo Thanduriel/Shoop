@@ -17,6 +17,9 @@ namespace Game {
 		const std::vector<Math::Vec2>& GetSpawnPositions() const { return m_spawnPositions; }
 
 		FactoryComponent& GetFactory() { return m_factory; }
+
+		// -1 gray, 0 red, 1 green
+		void ShowWinnerFlags(int _color, float _duration);
 	protected:
 		enum Border {
 			Left = 0x1,
@@ -29,6 +32,7 @@ namespace Game {
 		void MakeBorders(Scene& _scene, BorderFlags _borders = Left | Right | Top | Bot);
 
 		std::vector<Math::Vec2> m_spawnPositions;
+		Math::Vec2 m_winnerFlagPos;
 
 		FactoryComponent m_factory;
 	};

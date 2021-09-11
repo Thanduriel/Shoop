@@ -31,18 +31,19 @@ endif(MSVC)
 set(SFML_BUILD_GRAPHICS TRUE)
 set(SFML_BUILD_WINDOW TRUE)
 set(BUILD_SHARED_LIBS TRUE)
-set(SFML_BUILD_AUDIO TRUE)
+set(SFML_BUILD_AUDIO FALSE)
 set(SFML_BUILD_EXAMPLES FALSE)
 set(SFML_BUILD_DOC FALSE)
 set(SFML_BUILD_NETWORK FALSE)
 
 add_subdirectory("dependencies/SFML")
 
+include_directories("src")
+add_executable(shoop ${SOURCE_FILES})
+
 # faster compilation with multithreading
 # cmake does not support vs compiler switches for std
 if(MSVC)
-	#add_compile_options( /std:c++17 )
-	
 	set(OPTIMIZATION_OPTIONS 
     $<$<CONFIG:Debug>:>
     $<$<CONFIG:RelWithDebInfo>:>
@@ -51,10 +52,9 @@ if(MSVC)
     )
 	
 	add_compile_options( "${OPTIMIZATION_OPTIONS}" )
+else()
+	target_compile_options(shoop PUBLIC "$<$<CONFIG:RELEASE>:-O3;-DNDEBUG>")
 endif(MSVC)
-
-include_directories("src")
-add_executable(shoop ${SOURCE_FILES})
 
 #SFML
 include_directories("dependencies/SFML/include")

@@ -5,9 +5,10 @@ namespace Input
 {
 	using namespace Utils;
 
-	const ConfigSection::Initializer<GamePadButton, 1> Gamepad1Buttons(
+	const ConfigSection::Initializer<GamePadButton, 2> Gamepad1Buttons(
 		{ {
 			{"Jump", GamePadButton::RB},
+			{"JumpAlt", GamePadButton::LB},
 		} });
 
 	const ConfigSection::Initializer<sf::Joystick::Axis, 2> Gamepad1Axis(
@@ -18,7 +19,8 @@ namespace Input
 
 	GamePadInputInterface::GamePadInputInterface(const ConfigSection& _config, unsigned _id)
 		: m_inputMap({
-			{Action::Jump, _config.GetValue<GamePadButton>("Jump")} }),
+			{Action::Jump, _config.GetValue<GamePadButton>("Jump")},
+			{Action::JumpAlt, _config.GetValue<GamePadButton>("JumpAlt")} }),
 		m_axisMap(
 			{_config.GetValue<sf::Joystick::Axis>("Accelerate"),
 			_config.GetValue<sf::Joystick::Axis>("Rotate")}),

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "math/vector.hpp"
+#include "utils/config.hpp"
 
 namespace sf {
 	class RenderWindow;
@@ -31,4 +32,6 @@ namespace Graphics {
 
 		static sf::RenderWindow* m_window;
 	};
+
+	const extern Utils::ConfigSection::Initializer<int, 2> VideoSettings;
 }

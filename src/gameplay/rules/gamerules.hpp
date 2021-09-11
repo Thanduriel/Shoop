@@ -19,6 +19,7 @@ namespace Game {
 		virtual void Process(float _deltaTime) {}
 		virtual bool IsOver() = 0;
 		virtual void Start() {}
+		virtual void Reset() {}
 		virtual std::string GetScore() { return "not implemented"; };
 
 	protected:

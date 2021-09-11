@@ -24,7 +24,7 @@ namespace Input
 	};
 
 	// default gamepad mappings
-	const extern Utils::ConfigSection::Initializer<GamePadButton, 1> Gamepad1Buttons;
+	const extern Utils::ConfigSection::Initializer<GamePadButton, 2> Gamepad1Buttons;
 	const extern Utils::ConfigSection::Initializer<sf::Joystick::Axis, 2> Gamepad1Axis;
 }
 

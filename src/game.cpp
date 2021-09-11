@@ -13,7 +13,9 @@ Shoop::Shoop(int _sizeX, int _sizeY)
 	: m_targetFrameTime(1.f / 60.f),
 	m_config(Utils::CONFIG_PATH)
 {
-	Device::Init(_sizeX, _sizeY);
+	const Utils::ConfigSection& videoSettings = m_config.GetSection("video");
+	Device::Init(videoSettings.GetValue<int>("ResolutionX"), 
+		videoSettings.GetValue<int>("ResolutionY"));
 	Device::GetWindow().setKeyRepeatEnabled(false);
 }
 
@@ -42,7 +44,7 @@ void Shoop::Run()
 		}
 
 		const sf::Time frameTime = clock.restart();
-		Device::GetWindow().setTitle(std::to_string(frameTime.asSeconds()));;
+	//	Device::GetWindow().setTitle(std::to_string(frameTime.asSeconds()));;
 
 		Game::GameState* currentState = m_states.back().get();
 		currentState->Process(frameTime.asSeconds());

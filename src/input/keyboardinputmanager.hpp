@@ -21,8 +21,8 @@ namespace Input
 	};
 
 	// default keyboard mappings
-	const extern Utils::ConfigSection::Initializer<sf::Keyboard::Key, 5> Keyboard1;
-	const extern Utils::ConfigSection::Initializer<sf::Keyboard::Key, 5> Keyboard2;
+	const extern Utils::ConfigSection::Initializer<sf::Keyboard::Key, 6> Keyboard1;
+	const extern Utils::ConfigSection::Initializer<sf::Keyboard::Key, 6> Keyboard2;
 }
 
 // allow reading of keys from a config

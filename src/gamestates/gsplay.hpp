@@ -20,7 +20,6 @@ namespace Game {
 
 		void Process(float _deltaTime) override;
 		void Draw(sf::RenderWindow& _window) override;
-
 	private: 
 
 		Scene m_scene;

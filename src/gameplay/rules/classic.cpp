@@ -20,15 +20,21 @@ namespace Game {
 			if (std::any_of(m_players.begin(), m_players.end(), Rules::IsDead))
 			{
 				// register win
+				int winner = -1;
 				for (size_t i = 0; i < m_players.size(); ++i)
 				{
 					const Actor::Handle& player = m_players[i];
-					if (!Rules::IsDead(player))
+					if (!Rules::IsDead(player)) 
+					{
 						++m_numWins[i];
+						winner = static_cast<int>(i);
+					}
 				}
 
 				m_state = State::Wait;
 				m_waitTimeLeft = m_waitTime;
+
+				m_map->ShowWinnerFlags(winner, m_waitTime);
 			}
 			break;
 		case State::Wait:
@@ -59,6 +65,13 @@ namespace Game {
 		m_numWins.resize(2);
 		for (PlayerControllerComponent* controller : m_controllers)
 			controller->GetActor().Destroy();
+		ResetMap();
+	}
+
+	void Classic::Reset()
+	{
+		m_numWins[0] = 0;
+		m_numWins[1] = 0;
 		ResetMap();
 	}
 

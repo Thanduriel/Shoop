@@ -6,6 +6,12 @@ namespace Graphics {
 
 	sf::RenderWindow* Device::m_window;
 
+	const Utils::ConfigSection::Initializer<int, 2> VideoSettings(
+		{ {
+			{"ResolutionX", 1440},
+			{"ResolutionY", 1080},
+		} });
+
 	const float WORLD_TO_SCREEN = 70.f;
 
 	void Device::Init(int _sizeX, int _sizeY)

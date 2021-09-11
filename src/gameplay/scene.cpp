@@ -34,7 +34,7 @@ namespace Game {
 	// **************************************************************** //
 	void Scene::Process(float _deltaTime)
 	{
-		m_physicsWorld.Step(_deltaTime, 10, 8);
+		m_physicsWorld.Step(_deltaTime, 8, 3);
 
 		for (ProcessComponent& component : m_processComponents)
 			component.Process(_deltaTime);

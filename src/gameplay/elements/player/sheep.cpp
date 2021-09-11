@@ -66,7 +66,7 @@ namespace Game {
 
 		b2FixtureDef headFixture;
 		headFixture.friction = 1.f;
-		headFixture.density = 0.1f;
+		headFixture.density = 0.001f;
 		headFixture.restitution = 0.f;
 		headFixture.shape = &headShape;
 

@@ -11,6 +11,7 @@ namespace Game {
 		void Process(float _deltaTime) override;
 		bool IsOver() override;
 		void Start() override;
+		void Reset() override;
 		std::string GetScore() override;
 	private:
 		void ResetMap();

@@ -18,6 +18,7 @@ namespace Input
 		None,
 
 		Jump,
+		JumpAlt,
 		Confirm,
 		Cancel,
 

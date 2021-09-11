@@ -7,18 +7,20 @@ namespace Input
 	using namespace std::string_literals;
 	using namespace Utils;
 
-	const Utils::ConfigSection::Initializer<sf::Keyboard::Key,5> Keyboard1(
+	const Utils::ConfigSection::Initializer<sf::Keyboard::Key,6> Keyboard1(
 	{ {
 		{"Jump", Key::RControl},
+		{"JumpAlt", Key::RAlt},
 		{"AccelerateCW", Key::Up},
 		{"AccelerateCCW", Key::Down},
 		{"RotateCW", Key::Left},
 		{"RotateCCW", Key::Right}
 	} });
 
-	const Utils::ConfigSection::Initializer<sf::Keyboard::Key, 5> Keyboard2(
+	const Utils::ConfigSection::Initializer<sf::Keyboard::Key, 6> Keyboard2(
 	{ {
 		{"Jump", Key::Space},
+		{"JumpAlt", Key::LAlt},
 		{"AccelerateCW", Key::W},
 		{"AccelerateCCW", Key::S},
 		{"RotateCW", Key::A},
@@ -28,6 +30,7 @@ namespace Input
 	KeyBoardInputInterface::KeyBoardInputInterface(const ConfigSection& _config)
 		: m_inputMap({ 
 			{Action::Jump, _config.GetValue<Key>("Jump")},
+			{Action::JumpAlt, _config.GetValue<Key>("JumpAlt")},
 			{Action::AccelerateCW, _config.GetValue<Key>("AccelerateCW")},
 			{Action::AccelerateCCW, _config.GetValue<Key>("AccelerateCCW")},
 			{Action::RotateCW, _config.GetValue<Key>("RotateCW")},
