@@ -1,5 +1,6 @@
 #include "game.hpp"
 #include "Box2D/Box2D.h"
+#include "gamestates/gsstart.hpp"
 #include "gamestates/gsplay.hpp"
 #include "resources.hpp"
 #include "SFML/System.hpp"
@@ -18,6 +19,9 @@ Shoop::Shoop(int _sizeX, int _sizeY)
 		videoSettings.GetValue<int>("ResolutionY"),
 		videoSettings.GetValue<int>("Fullscreen"));
 	Device::GetWindow().setKeyRepeatEnabled(false);
+
+	const sf::Image& icon = Resources::Load<sf::Image>("icon");
+	Device::GetWindow().setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
 }
 
 // explicit definition here for the destructor of GameState
@@ -30,7 +34,11 @@ void Shoop::Run()
 {
 	spdlog::info("Running the game");
 
-	m_states.emplace_back(new Game::GSPlay(m_config));
+	const bool skipStart = m_config.GetSection("general").GetValue<int>("SkipStartScreen");
+	if (skipStart)
+		m_states.emplace_back(new Game::GSPlay(m_config));
+	else
+		m_states.emplace_back(new Game::GSStart(m_config));
 
 	sf::Clock clock;
 

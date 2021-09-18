@@ -118,6 +118,7 @@ namespace Math {
 
 	using Vec2 = Vector2<float>;
 	using Vec2I = Vector2<int>;
+	using Vec2U = Vector2<unsigned>;
 
 	// ******************************************************************** //
 	// long implementations

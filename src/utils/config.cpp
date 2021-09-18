@@ -18,6 +18,11 @@ namespace Game {
 			{"autoChargeJump", 0},
 			{"numWinsRequired", 11}
 		} });
+
+	const Utils::ConfigSection::Initializer<int, 1> GeneralSettings(
+		{ {
+			{"SkipStartScreen", 0}
+		} });
 }
 
 namespace Utils {
@@ -114,5 +119,6 @@ namespace Utils {
 		m_sections["gamepad1"] += Input::Gamepad1Axis;
 		m_sections["video"] = Graphics::VideoSettings;
 		m_sections["gameplay"] = Game::GamplaySettings;
+		m_sections["general"] = Game::GeneralSettings;
 	}
 }

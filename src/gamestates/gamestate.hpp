@@ -22,10 +22,12 @@ namespace Game
 		bool IsFinished() const { return m_isFinished; }
 		void Finish() { m_isFinished = true; }
 		std::unique_ptr<GameState> GetNewState() { return std::move(m_newState); }
+
+	protected:
+		std::unique_ptr<GameState> m_newState;
 	private:
 		bool m_isFinished;
-		std::unique_ptr<GameState> m_newState;
 
-		friend class Shoop; // only the main loop needs to access state change requests
+	//	friend class Shoop; // only the main loop needs to access state change requests
 	};
 }

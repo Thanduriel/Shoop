@@ -30,17 +30,13 @@ namespace Graphics {
 
 	void Device::Resize(int _sizeX, int _sizeY, bool _fullScreen)
 	{
-		auto test = sf::VideoMode::getFullscreenModes();
-
 		sf::ContextSettings settings;
 		settings.antialiasingLevel = 4;
 		const sf::Uint32 style = _fullScreen ? sf::Style::Fullscreen
 			: sf::Style::Titlebar | sf::Style::Close;
 		m_window->create(sf::VideoMode(_sizeX, _sizeY), "shoop", style, settings);
 
-		// adjust view
-		sf::View view(sf::FloatRect(Math::Vec2(0.f), GetSizeWorldSpace()));
-		m_window->setView(view);
+		SetView(true);
 	}
 
 	Math::Vec2 Device::ToScreenSpace(Math::Vec2 _position)
@@ -57,5 +53,12 @@ namespace Graphics {
 	Math::Vec2 Device::GetSizeWorldSpace()
 	{
 		return Math::Vec2(m_window->getSize()) / WORLD_TO_SCREEN;
+	}
+
+	void Device::SetView(bool _worldView)
+	{
+		m_window->setView(_worldView ? 
+			sf::View(sf::FloatRect(Math::Vec2(0.f), GetSizeWorldSpace()))
+			: m_window->getDefaultView());
 	}
 }

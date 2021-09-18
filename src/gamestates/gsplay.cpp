@@ -95,6 +95,7 @@ namespace Game {
 
 	void GSPlay::Draw(sf::RenderWindow& _window)
 	{
+		Graphics::Device::SetView(true);
 		m_scene.Draw(_window);
 
 		scoreScreen->SetText(m_rules->GetScore());

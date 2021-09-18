@@ -26,6 +26,8 @@ namespace Graphics {
 
 		static sf::RenderWindow& GetWindow() { return *m_window; }
 		static Math::Vec2 GetSizeWorldSpace();
+
+		static void SetView(bool _worldView);
 	private:
 		Device() = delete;
 		Device(const Device&) = delete;
