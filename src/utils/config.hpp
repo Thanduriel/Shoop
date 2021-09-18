@@ -1,7 +1,7 @@
 #pragma once
 
 #include "resources.hpp"
-
+#include <spdlog/spdlog.h>
 #include <string_view>
 #include <unordered_map>
 #include <sstream>
@@ -69,7 +69,11 @@ namespace Utils {
 
 			if (it != m_values.end())
 				return Details::Convert<T>(it->second);
-			else return T{};
+			else
+			{
+				spdlog::warn("Could not find the config key \"{}\". Try resetting to defaults by deleting \"settings.ini\".", _name);
+				return T{};
+			}
 		}
 
 		// Add contents of another section.

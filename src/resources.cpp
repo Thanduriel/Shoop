@@ -85,14 +85,14 @@ RESOURCE(sf::Image, "../content/texture/", ".png", loadFromFile);
 
 // add more resources here
 
-SFML_RESOURCE(sf::Image, "../content/texture/", ".png");
-SFML_RESOURCE(sf::Font, "../content/fonts/", ".ttf");
+SFML_RESOURCE(sf::Image, CONTENTPATH("content/texture/"), ".png");
+SFML_RESOURCE(sf::Font, CONTENTPATH("content/fonts/"), ".ttf");
 
 // Texture can not use the default variant as its load takes an additional argument.
 class TextureTrait
 {
 public:
-	constexpr static const char* ROOT = "../content/texture/";
+	constexpr static const char* ROOT = CONTENTPATH("content/texture/");
 	constexpr static const char* FILE_ENDING = ".png";
 };
 template<>

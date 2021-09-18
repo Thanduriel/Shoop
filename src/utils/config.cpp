@@ -42,6 +42,7 @@ namespace Utils {
 		if (file.fail())
 		{
 			spdlog::warn("Could not load config file: "s + _fileName);
+			spdlog::info("Creating default config.");
 			CreateDefault();
 			Save(CONFIG_PATH);
 		}
@@ -107,7 +108,6 @@ namespace Utils {
 
 	void Config::CreateDefault()
 	{
-		spdlog::info("creating default config");
 		m_sections["keyboard1"] = Input::Keyboard1;
 		m_sections["keyboard2"] = Input::Keyboard2;
 		m_sections["gamepad1"] = Input::Gamepad1Buttons;

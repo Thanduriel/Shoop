@@ -6,20 +6,21 @@ namespace Graphics {
 
 	sf::RenderWindow* Device::m_window;
 
-	const Utils::ConfigSection::Initializer<int, 2> VideoSettings(
+	const Utils::ConfigSection::Initializer<int, 3> VideoSettings(
 		{ {
-			{"ResolutionX", 1440},
-			{"ResolutionY", 1080},
+			{"ResolutionX", 1400},
+			{"ResolutionY", 1050},
+			{"Fullscreen", 0}
 		} });
 
 	const float WORLD_TO_SCREEN = 70.f;
 
-	void Device::Init(int _sizeX, int _sizeY)
+	void Device::Init(int _sizeX, int _sizeY, bool _fullScreen)
 	{
 		spdlog::info("Initializing graphics device");
 
 		m_window = new sf::RenderWindow();
-		Resize(_sizeX, _sizeY);
+		Resize(_sizeX, _sizeY, _fullScreen);
 	}
 
 	void Device::Close()
@@ -27,12 +28,15 @@ namespace Graphics {
 		delete m_window;
 	}
 
-	void Device::Resize(int _sizeX, int _sizeY)
+	void Device::Resize(int _sizeX, int _sizeY, bool _fullScreen)
 	{
+		auto test = sf::VideoMode::getFullscreenModes();
+
 		sf::ContextSettings settings;
 		settings.antialiasingLevel = 4;
-		m_window->create(sf::VideoMode(_sizeX, _sizeY), "shoop",
-			sf::Style::Titlebar | sf::Style::Close, settings);
+		const sf::Uint32 style = _fullScreen ? sf::Style::Fullscreen
+			: sf::Style::Titlebar | sf::Style::Close;
+		m_window->create(sf::VideoMode(_sizeX, _sizeY), "shoop", style, settings);
 
 		// adjust view
 		sf::View view(sf::FloatRect(Math::Vec2(0.f), GetSizeWorldSpace()));

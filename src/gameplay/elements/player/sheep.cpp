@@ -15,9 +15,9 @@ namespace Game {
 
 	Sheep::Sheep(Math::Vec2 _position, const sf::Color& _color)
 		: Actor(_position),
-		m_wheelSprite(THISACTOR, Resources::Load<sf::Texture>("wheel"), Math::Vec2(WHEEL_RADIUS*2.3f)),
+		m_wheelSprite(THISACTOR, Resources::Load<sf::Texture>("Wheel"), Math::Vec2(WHEEL_RADIUS*2.3f)),
 		m_bodySprite(THISACTOR, Resources::Load<sf::Texture>("SheepFront"), SPRITE_SIZE),
-		m_legSprite(THISACTOR, Resources::Load<sf::Texture>("sheepBack"), SPRITE_SIZE),
+		m_legSprite(THISACTOR, Resources::Load<sf::Texture>("SheepBack"), SPRITE_SIZE),
 		m_unicycleSprite(THISACTOR, Resources::Load<sf::Texture>("unicycle"), SPRITE_SIZE),
 		m_wheel(THISACTOR, &m_wheelSprite),
 		m_body(THISACTOR, this),

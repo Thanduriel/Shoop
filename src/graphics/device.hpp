@@ -12,10 +12,10 @@ namespace Graphics {
 	class Device
 	{
 	public:
-		static void Init(int _sizeX, int _sizeY);
+		static void Init(int _sizeX, int _sizeY, bool _fullScreen);
 		static void Close();
 
-		static void Resize(int _sizeX, int _sizeY);
+		static void Resize(int _sizeX, int _sizeY, bool _fullScreen);
 
 		// Transforms a logical position to screen space.
 		static Math::Vec2 ToScreenSpace(Math::Vec2 _position);
@@ -33,5 +33,5 @@ namespace Graphics {
 		static sf::RenderWindow* m_window;
 	};
 
-	const extern Utils::ConfigSection::Initializer<int, 2> VideoSettings;
+	const extern Utils::ConfigSection::Initializer<int, 3> VideoSettings;
 }

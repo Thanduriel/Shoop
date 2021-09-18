@@ -3,8 +3,8 @@
 #include <string>
 #include <type_traits>
 
-#ifdef _DEBUG
-#define CONTENTPATH(path) "../" path
+#ifdef NDEBUG
+#define CONTENTPATH(path) path
 #else
 #define CONTENTPATH(path) "../" path
 //#define CONTENTPATH(path) path

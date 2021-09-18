@@ -15,7 +15,8 @@ Shoop::Shoop(int _sizeX, int _sizeY)
 {
 	const Utils::ConfigSection& videoSettings = m_config.GetSection("video");
 	Device::Init(videoSettings.GetValue<int>("ResolutionX"), 
-		videoSettings.GetValue<int>("ResolutionY"));
+		videoSettings.GetValue<int>("ResolutionY"),
+		videoSettings.GetValue<int>("Fullscreen"));
 	Device::GetWindow().setKeyRepeatEnabled(false);
 }
 
