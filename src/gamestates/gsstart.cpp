@@ -46,7 +46,7 @@ namespace Game {
 		_window.draw(m_background);
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)
-			|| sf::Joystick::isButtonPressed(0,Input::GamePadButton::A))
+			|| sf::Joystick::isButtonPressed(0,static_cast<unsigned>(Input::GamePadButton::A)))
 		{
 			m_newState = std::make_unique<GSPlay>(m_config);
 		}

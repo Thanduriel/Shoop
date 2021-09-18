@@ -39,7 +39,9 @@ namespace Input
 
 	bool KeyBoardInputInterface::IsKeyPressed(Action _action) const
 	{
-		return sf::Keyboard::isKeyPressed(m_inputMap.GetKey(_action));
+		const Key key = m_inputMap.GetKey(_action);
+		return key == Key::Unknown ? false
+			: sf::Keyboard::isKeyPressed(key);
 	}
 
 	float KeyBoardInputInterface::GetAxis(Axis _axis) const
@@ -47,9 +49,9 @@ namespace Input
 		const AxisAction aa = AXIS_ACTIONS[static_cast<size_t>(_axis)];
 
 		float axis = 0.f;
-		if (sf::Keyboard::isKeyPressed(m_inputMap.GetKey(aa.low)))
+		if (IsKeyPressed(aa.low))
 			axis -= 1.f;
-		if (sf::Keyboard::isKeyPressed(m_inputMap.GetKey(aa.high)))
+		if (IsKeyPressed(aa.high))
 			axis += 1.f;
 
 		return axis;

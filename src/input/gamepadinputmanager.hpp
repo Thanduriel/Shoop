@@ -7,7 +7,11 @@
 
 namespace Input
 {
-	enum GamePadButton { A, B, X, Y, LB, RB, Select, Start, COUNT };
+	enum GamePadButton
+	{ 
+		A, B, X, Y, LB, RB, Select, Start, COUNT, 
+		NONE = -1
+	};
 
 	class GamePadInputInterface : public InputInterface
 	{
@@ -18,13 +22,13 @@ namespace Input
 		float GetAxis(Axis _axis) const override;
 
 	private:
-		InputMap<GamePadButton, GamePadButton::COUNT> m_inputMap;
+		InputMap<GamePadButton, GamePadButton::NONE> m_inputMap;
 		std::array<sf::Joystick::Axis, 2> m_axisMap;
 		unsigned m_id;
 	};
 
 	// default gamepad mappings
-	const extern Utils::ConfigSection::Initializer<GamePadButton, 2> Gamepad1Buttons;
+	const extern Utils::ConfigSection::Initializer<GamePadButton, 6> Gamepad1Buttons;
 	const extern Utils::ConfigSection::Initializer<sf::Joystick::Axis, 2> Gamepad1Axis;
 }
 
