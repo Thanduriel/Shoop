@@ -2,7 +2,6 @@
 
 #include <string>
 #include <array>
-#include "inputdevice.hpp"
 #include "actions.hpp"
 
 namespace Input

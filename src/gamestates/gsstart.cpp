@@ -22,6 +22,7 @@ namespace Game {
 		m_background.setScale(sf::Vector2f(scale, scale));
 		m_background.setPosition(Math::Vec2(windowSize) * 0.5f);
 		m_background.setOrigin(Math::Vec2(spriteSize) * 0.5f);
+		
 		const float edge = windowSize.x - spriteSize.x * scale;
 		m_leftExtension.setTexture(background);
 		m_leftExtension.setTextureRect(sf::IntRect(0, 0, 1, spriteSize.y));
@@ -46,6 +47,7 @@ namespace Game {
 		_window.draw(m_background);
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)
+			|| sf::Keyboard::isKeyPressed(sf::Keyboard::Space)
 			|| sf::Joystick::isButtonPressed(0,static_cast<unsigned>(Input::GamePadButton::A)))
 		{
 			m_newState = std::make_unique<GSPlay>(m_config);

@@ -20,7 +20,7 @@ namespace Game {
 
 	PhysicsBodyComponent::~PhysicsBodyComponent()
 	{
-		Assert(m_body, "An uninitialized body component is being destroyed.");
+		Assert(!!m_body, "An uninitialized body component is being destroyed.");
 		// when the scene is destroyed m_world is set to nullptr and all its objects
 		// are destroyed at once.
 		if (Details::PhysicsWorldWrapper::m_world)
@@ -67,7 +67,7 @@ namespace Game {
 
 	PhysicsJointComponent::~PhysicsJointComponent()
 	{
-		Assert(m_joint, "An uninitialized joint component is being destroyed.");
+		Assert(!!m_joint, "An uninitialized joint component is being destroyed.");
 		if (Details::PhysicsWorldWrapper::m_world)
 			Details::PhysicsWorldWrapper::m_world->DestroyJoint(m_joint);
 	}

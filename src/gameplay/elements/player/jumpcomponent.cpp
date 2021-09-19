@@ -8,11 +8,11 @@ namespace Game {
 
 	JumpComponent::JumpComponent(Actor& _actor, PhysicsBodyComponent& _targetBody)
 		: ProcessComponent(_actor),
-		m_targetBody(_targetBody),
 		m_maxCharge(DEFAULT_CHARGE_TIME),
 		m_charge(0.f),
+		m_charging(true),
 		m_maxStrength(DEFAULT_MAX_STRENGTH),
-		m_charging(true)
+		m_targetBody(_targetBody)
 	{
 
 	}

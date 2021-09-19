@@ -82,6 +82,9 @@ namespace Game {
 		m_rules->Start();
 	}
 
+	GSPlay::~GSPlay()
+	{}
+
 	void GSPlay::Process(float _deltaTime)
 	{
 		m_scene.CleanUp();

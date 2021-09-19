@@ -1,6 +1,6 @@
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.12)
 project (shoop)
-set (CMAKE_CXX_STANDARD 17)
+set (CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # find all source and header files
@@ -23,10 +23,6 @@ endmacro()
 # execute tha macro
 GroupSources(src)
 
-if(MSVC)
-	add_compile_options( /MP )
-endif(MSVC)
-
 include_directories("src")
 add_executable(shoop ${SOURCE_FILES})
 
@@ -34,22 +30,28 @@ add_executable(shoop ${SOURCE_FILES})
 # cmake does not support vs compiler switches for std
 if(MSVC)
 	set(OPTIMIZATION_OPTIONS 
-    $<$<CONFIG:Debug>:>
-    $<$<CONFIG:RelWithDebInfo>:>
-    $<$<CONFIG:Release>: /O2 /Ob2 /Oi /Ot /GL > 
-    $<$<CONFIG:MinSizeRel>:>
+		$<$<CONFIG:Debug>:>
+		$<$<CONFIG:RelWithDebInfo>:>
+		$<$<CONFIG:Release>: /O2 /Ob2 /Oi /Ot /GL > 
+		$<$<CONFIG:MinSizeRel>:>
     )
 	
 	add_compile_options( "${OPTIMIZATION_OPTIONS}" )
+	add_compile_options( /MP )
 else()
-	target_compile_options(shoop PUBLIC "$<$<CONFIG:RELEASE>:-O3;-DNDEBUG>")
+	set(OPTIMIZATION_OPTIONS 
+		$<$<CONFIG:Debug>:-Wall;-pedantic>
+		$<$<CONFIG:RelWithDebInfo>:>
+		$<$<CONFIG:Release>: -O3;-DNDEBUG > 
+		$<$<CONFIG:MinSizeRel>:>
+    )
+	target_compile_options(shoop PUBLIC "${OPTIMIZATION_OPTIONS}")
 endif(MSVC)
 
 #SFML
-# SFML config: use dynamic libs; skip examples and the network module
-#find_package(SFML COMPONENTS system graphics window QUIET)
-#if (NOT SFML_FOUND)
-	message("SFML not found. Attempting to use local version.")
+find_package(SFML COMPONENTS system graphics window QUIET)
+if (NOT SFML_FOUND)
+	message("SFML not found. Attempting to use local submodule version.")
 	set(SFML_BUILD_GRAPHICS TRUE)
 	set(SFML_BUILD_WINDOW TRUE)
 	set(BUILD_SHARED_LIBS FALSE)
@@ -60,7 +62,7 @@ endif(MSVC)
 	set(SFML_BUILD_NETWORK FALSE)
 	target_include_directories(shoop PRIVATE "dependencies/SFML/include")
 	add_subdirectory("dependencies/SFML")
-#endif(NOT SFML_FOUND)
+endif(NOT SFML_FOUND)
 target_link_libraries(shoop sfml-system sfml-graphics sfml-window)
 
 #box2d

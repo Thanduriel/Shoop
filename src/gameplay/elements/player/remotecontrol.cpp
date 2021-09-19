@@ -1,8 +1,9 @@
 #include "remotecontrol.hpp"
 #include "resources.hpp"
-#include "input/input.hpp"
+#include "input/inputmanager.hpp"
 #include "sheep.hpp"
 #include <iostream>
+
 namespace Game {
 
 	const std::array<float, 4> HORIZONTAL_THRESHOLD = { -0.8f, -0.2f, 0.2f, 0.8f };

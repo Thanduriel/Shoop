@@ -8,9 +8,9 @@ namespace Game {
 
 	BalancerComponent::BalancerComponent(Actor& _actor, PhysicsBodyComponent& _targetBody)
 		: ProcessComponent(_actor),
-		m_targetBody(_targetBody),
 		m_GForce(DEFAULT_GRAVITY),
-		m_NForce(m_GForce)
+		m_NForce(m_GForce),
+		m_targetBody(_targetBody)
 	{
 
 	}

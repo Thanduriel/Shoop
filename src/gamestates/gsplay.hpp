@@ -17,6 +17,7 @@ namespace Game {
 	{
 	public:
 		GSPlay(const Utils::Config& _config);
+		~GSPlay();
 
 		void Process(float _deltaTime) override;
 		void Draw(sf::RenderWindow& _window) override;
