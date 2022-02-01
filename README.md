@@ -6,8 +6,8 @@ This version includes all parts of the original and also comes with various impr
 > There are sheep on remote controlled unicycles.
 
 Originally developed during a gamejam in 2015 Shoop has become classic at Acagamics events.
-This local multiplayer game tasks two players with leading there sheep to victory in a unicycle based tournament.
-The goal is to have the opposing sheep hit their head on some surface bevor yours does.
+This local multiplayer game tasks two players with leading their sheep to victory in an unicycle based tournament.
+The goal is to have the opposing sheep bump head-first into some surface while keeping your sheep save.
 
 ## Build
 Building requires a C++ 20 compiler (tested with g++-10.3 and msvc-19.29).
