@@ -63,7 +63,7 @@ namespace Game {
 	{
 		m_players.resize(2);
 		m_numWins.resize(2);
-		for (PlayerControllerComponent* controller : m_controllers)
+		for (ControllerComponent* controller : m_controllers)
 			controller->GetActor().Destroy();
 		ResetMap();
 	}

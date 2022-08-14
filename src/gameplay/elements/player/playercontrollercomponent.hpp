@@ -26,5 +26,5 @@ namespace Game {
 	};
 
 	// will probably change
-	using ControllerContainer = std::vector<PlayerControllerComponent*>;
+	using ControllerContainer = std::vector<ControllerComponent*>;
 }
