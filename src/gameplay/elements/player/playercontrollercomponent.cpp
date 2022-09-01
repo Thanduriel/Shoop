@@ -57,8 +57,6 @@ namespace Game {
 
 		const float acc = m_input.GetAxis(Axis::Accelerate);
 		if (std::abs(acc) > 0.2f) player.GetWheel().Get().ApplyTorque(-acc, true);
-
-
 	}
 
 }

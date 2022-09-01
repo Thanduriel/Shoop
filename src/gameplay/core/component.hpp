@@ -32,7 +32,7 @@ namespace Game {
 		Component& operator=(Component&&) = delete;
 		
 		Actor& GetActor() const { return *m_actor; }
-		// move this component to another actor
+		// Move this component to another actor
 		void Attach(Actor& _actor);
 		Type GetType() const { return m_type; }
 		bool ShouldRegister() const { return m_shouldRegister; }

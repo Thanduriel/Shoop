@@ -143,7 +143,7 @@ namespace Generators {
 			for (int i = 0; i<5; ++i)
 			{
 				float u = Uniform();
-				if (u <= 0.0f) n += 743.7;	// -log(e-323) == 743.746924741
+				if (u <= 0.0f) n += 743.7469;	// -log(e-323) == 743.746924741
 				else if (u >= 1.0f) continue;
 				n += -log(u);
 			}

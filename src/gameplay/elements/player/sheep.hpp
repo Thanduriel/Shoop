@@ -25,8 +25,11 @@ namespace Game {
 		void Flip(bool _flip);
 
 		JumpComponent& GetJump() { return m_jumpComponent; }
+		const JumpComponent& GetJump() const { return m_jumpComponent; }
 		PhysicsBodyComponent& GetBody() { return m_body; }
+		const PhysicsBodyComponent& GetBody() const { return m_body; }
 		PhysicsBodyComponent& GetWheel() { return m_wheel; }
+		const PhysicsBodyComponent& GetWheel() const { return m_wheel; }
 	private:
 		GlobalSpriteComponent m_wheelSprite;
 		SpriteComponent m_legSprite;

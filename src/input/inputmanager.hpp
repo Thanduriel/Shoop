@@ -37,4 +37,14 @@ namespace Input
 	private:
 		std::unordered_map<Action, T> m_keyMap;
 	};
+
+	class VirtualInputs : public InputInterface
+	{
+	public:
+		std::array<float, static_cast<size_t>(Axis::COUNT)> axis = {};
+		std::array<bool, static_cast<size_t>(Action::COUNT)> actions = {};
+
+		virtual bool IsKeyPressed(Action _action) const override;
+		virtual float GetAxis(Axis _axis) const override;
+	};
 }

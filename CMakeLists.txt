@@ -1,10 +1,18 @@
 cmake_minimum_required (VERSION 3.12)
 project (shoop)
+
+# additional features
+OPTION(WITH_LEARNING "Enable the RL AI." OFF)
+
 set (CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # find all source and header files
 file(GLOB_RECURSE SOURCE_FILES "src/*.hpp" "src/*.cpp" "src/*.inl")
+
+if (NOT WITH_LEARNING)
+	list(REMOVE_ITEM SOURCE_FILES "${CMAKE_CURRENT_LIST_DIR}/src/gameplay/bots/learning.cpp")
+endif()
 
 # organize the files according to the organization in the file system
 # from: http://cmake.3232098.n2.nabble.com/Keep-folder-structure-in-Visual-Studio-Project-generated-with-CMake-td7586044.html
@@ -20,7 +28,7 @@ macro(GroupSources curdir)
 	endforeach()
 endmacro()
 
-# execute tha macro
+# execute the macro
 GroupSources(src)
 
 add_executable(shoop ${SOURCE_FILES})
@@ -30,7 +38,7 @@ if(MSVC)
 	set(OPTIMIZATION_OPTIONS 
 		$<$<CONFIG:Debug>:>
 		$<$<CONFIG:RelWithDebInfo>:>
-		$<$<CONFIG:Release>: /O2 /Ob2 /Oi /Ot /GL > 
+		$<$<CONFIG:Release>: /O2 /Ob2 /Oi /Ot > 
 		$<$<CONFIG:MinSizeRel>:>
 	)
 	
@@ -48,6 +56,12 @@ else()
 	)
 endif(MSVC)
 target_compile_options( shoop PUBLIC "${OPTIMIZATION_OPTIONS}" )
+
+include(CheckIPOSupported)
+check_ipo_supported(RESULT result)
+if(result)
+	set_property(TARGET AcaEngine Game PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+endif()
 
 #SFML
 find_package(SFML COMPONENTS system graphics window QUIET)
@@ -76,3 +90,10 @@ target_link_libraries(shoop Box2D)
 
 #spdlog
 target_include_directories(shoop PRIVATE "dependencies/spdlog/include")
+
+# torch
+if (WITH_LEARNING)
+	target_compile_definitions(shoop PUBLIC "LEARNING_AI")
+	find_package(Torch REQUIRED)
+	target_link_libraries(Torch PUBLIC "${TORCH_LIBRARIES}")
+endif()

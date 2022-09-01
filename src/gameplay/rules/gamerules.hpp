@@ -22,6 +22,7 @@ namespace Game {
 		virtual void Reset() {}
 		virtual std::string GetScore() { return "not implemented"; };
 
+		const std::vector<Actor::Handle>& GetPlayers() const { return m_players; }
 	protected:
 		void SpawnPlayer(PlayerId _id, Math::Vec2 _position, bool _flip = false);
 		static bool IsDead(const Actor::ConstHandle& _handle);

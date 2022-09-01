@@ -21,6 +21,7 @@
 #include "gameplay/core/singlecomponentactor.hpp"
 #include "gameplay/elements/textcomponent.hpp"
 #include "input/gamepadinputmanager.hpp"
+#include "gameplay/elements/player/aicontrollercomponent.hpp"
 
 namespace Game {
 
@@ -55,12 +56,23 @@ namespace Game {
 
 		const sf::Color playerRed(206, 0, 0); 
 		const sf::Color playerGreen(12, 183, 0);
+
 		Sheep* sheep1 = new Sheep(Vec2(), playerRed);
 		Sheep* sheep2 = new Sheep(Vec2(), playerGreen);
 		const Utils::ConfigSection& gamplaySettings = _config.GetSection("gameplay");
 		const bool autoCharge = gamplaySettings.GetValue<int>("autoChargeJump");
-		controller1 = std::make_unique<PlayerControllerComponent>(*sheep1, *input1, autoCharge);
-		controller2 = std::make_unique<PlayerControllerComponent>(*sheep2, *input2, autoCharge);
+		auto makeController = [&](Sheep& sheep, Input::InputInterface& inp, bool isAI)
+		{
+			if (isAI)
+				return std::unique_ptr<PlayerControllerComponent>(
+					new AIControllerComponent(sheep, *m_rules, RandomAI(), 2.f));
+			else 
+				return std::unique_ptr<PlayerControllerComponent>(
+					new PlayerControllerComponent(sheep, inp, autoCharge));
+		};
+
+		controller1 = makeController(*sheep1, *input1, true);
+		controller2 = makeController(*sheep2, *input2, true);
 		controllers.push_back(controller1.get());
 		controllers.push_back(controller2.get());
 		// register after to also register the controllers

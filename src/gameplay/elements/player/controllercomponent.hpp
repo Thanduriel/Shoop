@@ -11,10 +11,5 @@ namespace Game {
 	{
 	public:
 		ControllerComponent(Actor& _actor);
-
-	protected:
-		JumpComponent& m_jump;
-		PhysicsBodyComponent& m_headBody;
-		PhysicsBodyComponent& m_wheelBody;
 	};
 }
