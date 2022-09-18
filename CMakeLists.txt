@@ -4,7 +4,6 @@ project (shoop)
 # additional features
 OPTION(WITH_LEARNING "Enable the RL AI." OFF)
 
-set (CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # find all source and header files
@@ -34,6 +33,9 @@ GroupSources(src)
 add_executable(shoop ${SOURCE_FILES})
 target_include_directories(shoop PRIVATE "src")
 
+# not c++20 because torch is incompatible with it
+set_property(TARGET shoop PROPERTY CXX_STANDARD 17)
+
 if(MSVC)
 	set(OPTIMIZATION_OPTIONS 
 		$<$<CONFIG:Debug>:>
@@ -60,7 +62,7 @@ target_compile_options( shoop PUBLIC "${OPTIMIZATION_OPTIONS}" )
 include(CheckIPOSupported)
 check_ipo_supported(RESULT result)
 if(result)
-	set_property(TARGET AcaEngine Game PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+	set_property(TARGET shoop PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
 endif()
 
 #SFML
@@ -95,5 +97,5 @@ target_include_directories(shoop PRIVATE "dependencies/spdlog/include")
 if (WITH_LEARNING)
 	target_compile_definitions(shoop PUBLIC "LEARNING_AI")
 	find_package(Torch REQUIRED)
-	target_link_libraries(Torch PUBLIC "${TORCH_LIBRARIES}")
+	target_link_libraries(shoop "${TORCH_LIBRARIES}")
 endif()

@@ -38,12 +38,16 @@ namespace Input
 		std::unordered_map<Action, T> m_keyMap;
 	};
 
+	struct InputState
+	{
+		std::array<float, static_cast<size_t>(Axis::COUNT)> axis = {};
+		std::array<bool, static_cast<size_t>(Action::COUNT)> actions = {};
+	};
+
 	class VirtualInputs : public InputInterface
 	{
 	public:
-		std::array<float, static_cast<size_t>(Axis::COUNT)> axis = {};
-		std::array<bool, static_cast<size_t>(Action::COUNT)> actions = {};
-
+		InputState state;
 		virtual bool IsKeyPressed(Action _action) const override;
 		virtual float GetAxis(Axis _axis) const override;
 	};

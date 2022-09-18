@@ -47,8 +47,9 @@ namespace Game {
 	using namespace Input;
 	void RandomAI::operator()(const SheepState& _self, const SheepState& _oth, Input::VirtualInputs& _inp)
 	{
-		_inp.axis[static_cast<size_t>(Axis::Accelerate)] = Generators::g_random.Uniform(-1.f,1.f);
-		_inp.axis[static_cast<size_t>(Axis::Rotate)] = Generators::g_random.Uniform(-1.f, 1.f);
-		_inp.actions[static_cast<size_t>(Action::Jump)] = Generators::g_random.Uniform(0, 1);
+		for(float& axis : _inp.state.axis)
+			axis = Generators::g_random.Uniform(-1.f,1.f);
+		for (bool& action : _inp.state.actions)
+			action = Generators::g_random.Uniform(0, 1);
 	}
 }

@@ -31,7 +31,7 @@ namespace Math {
 		template<typename U, typename = std::enable_if_t< !std::is_same_v<T,U> >>
 		explicit Vector2(const sf::Vector2<U>& _orig) : x(static_cast<T>(_orig.x)), y(static_cast<T>(_orig.y)) {}
 		// Box2D only has a floating point vector.
-		template<typename U = T> requires std::is_floating_point_v<U>
+		template<typename U = T> // requires std::is_floating_point_v<U>
 		Vector2(const b2Vec2& _orig) : x(_orig.x), y(_orig.y) {}
 		
 		// Casts to other vector types
@@ -43,7 +43,7 @@ namespace Math {
 		template<typename U, typename = std::enable_if_t< !std::is_same_v<T, U> >>
 		explicit operator sf::Vector2<U>() const					{ return sf::Vector2(static_cast<U>(x), static_cast<U>(y)); }
 		
-		template<typename U = T> requires std::is_floating_point_v<U>
+		template<typename U = T> // requires std::is_floating_point_v<U>
 		operator b2Vec2() const										{ return b2Vec2(x, y); }
 
 		// Common operations

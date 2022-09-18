@@ -58,7 +58,7 @@ namespace Generators {
 			}
 			points.emplace_back(_curvePoints.back());
 
-			return std::move(points);
+			return points;
 		}
 	private:
 		template<typename BlendF>
