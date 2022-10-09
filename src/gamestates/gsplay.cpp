@@ -67,7 +67,7 @@ namespace Game {
 			if (isAI)
 			{
 				return std::unique_ptr<PlayerControllerComponent>(
-					new AIControllerComponent(sheep, *m_rules, DoopAI(5, DoopAI::Mode::SAMPLE, 1.0f), 4.f, true));
+					new AIControllerComponent(sheep, *m_rules, DoopAI(5, DoopAI::Mode::SAMPLE, 0.1f), 4.f, true));
 			}
 			else
 			{
@@ -76,7 +76,7 @@ namespace Game {
 			}
 		};
 
-		controller1 = makeController(*sheep1, *input1, false);
+		controller1 = makeController(*sheep1, *input1, true);
 		controller2 = makeController(*sheep2, *input2, true);
 		controllers.push_back(controller1.get());
 		controllers.push_back(controller2.get());

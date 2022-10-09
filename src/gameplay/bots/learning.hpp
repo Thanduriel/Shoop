@@ -50,7 +50,12 @@ namespace Game {
 
 	class Dataset
 	{
+	public:
+		Dataset(const std::string& _path, int _numIntervals);
 
+	private:
+		torch::Tensor inputs;
+		torch::Tensor outputs;
 	};
 
 	} // namespace Learning

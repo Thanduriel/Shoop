@@ -1,4 +1,5 @@
 #include "learning.hpp"
+#include <filesystem>
 
 namespace Game {
 
@@ -68,6 +69,17 @@ namespace Game {
 
 	using namespace Learning;
 
+	std::vector<float> MakeLinSpace(int _numIntervals)
+	{
+		std::vector<float> values(_numIntervals);
+		for (int i = 0; i < _numIntervals; ++i)
+		{
+			values[i] = -1.f + 2.f * (i / static_cast<float>(_numIntervals - 1));
+		}
+
+		return values;
+	}
+
 	std::vector<Input::InputState> MakeInputSpace(int _numIntervals)
 	{
 		constexpr size_t numAxis = static_cast<size_t>(Input::Axis::COUNT);
@@ -76,17 +88,13 @@ namespace Game {
 		size_t total = 1;
 		for (size_t i = 0; i < numAxis; ++i)
 			total *= _numIntervals;
-		// actions are binary -> double the number
+		// actions are binary -> each doubles the number
 		total <<= numActions;
 
 		std::vector<Input::InputState> inputSpace(1);
 		inputSpace.reserve(total);
 
-		std::vector<float> linAxisSpace(_numIntervals);
-		for (int i = 0; i < _numIntervals; ++i)
-		{
-			linAxisSpace[i] = -1.f + 2.f * (i / static_cast<float>(_numIntervals - 1));
-		}
+		const std::vector<float> linAxisSpace = MakeLinSpace(_numIntervals);
 
 		for (size_t ax = 0; ax < numAxis; ++ax)
 		{
@@ -137,6 +145,58 @@ namespace Game {
 		return torch::from_blob(const_cast<SheepState*>(&_state), { GetSheepStateSize() }, options);
 	}
 
+	// ************************************************************************ //
+	Dataset::Dataset(const std::string& _path, int _numIntervals)
+	{
+		namespace fs = std::filesystem;
+
+		const std::vector<float> values = MakeLinSpace(_numIntervals);
+		std::vector<float> intervals(values.size() + 1);
+		intervals.front() = values.front();
+		intervals.back() = values.back();
+		for (size_t i = 1; i < values.size(); ++i)
+			intervals[i] = (values[i - 1] + values[i]) * 0.5f;
+
+		constexpr size_t numAxis = static_cast<size_t>(Input::Axis::COUNT);
+		constexpr size_t numActions = GAME_ACTIONS.size();
+
+		std::vector<torch::Tensor> inputsTemp;
+		std::vector<int> outputsTemp;
+
+		for (const auto& dirEntry : fs::recursive_directory_iterator(_path))
+		{
+			GameLog log; 
+			log.Load(dirEntry.path().string());
+			if (log.outcome == Outcome::Win)
+			{
+				for (const GameLog::State& state : log.states)
+				{
+					int idx = 0;
+					int stride = 1;
+					for (size_t ax = 0; ax < numAxis; ++ax) 
+					{
+						auto it = std::upper_bound(intervals.begin(), intervals.end(), state.input.axis[ax]);
+						idx += stride * (std::distance(intervals.begin(), it) - 1);
+						stride *= _numIntervals;
+					}
+					for (size_t i = 0; i < numActions; ++i)
+					{
+						const size_t ac = static_cast<size_t>(GAME_ACTIONS[i]);
+						if (state.input.actions[ac])
+							idx += stride;
+						stride *= 2;
+					}
+					inputsTemp.emplace_back(torch::concat({ ToTensor(state.self), ToTensor(state.other) }));
+					outputsTemp.push_back(idx);
+				}
+			}
+		}
+		inputs = torch::stack(inputsTemp);
+		static const c10::TensorOptions options(c10::kInt);
+		outputs = torch::from_blob(outputsTemp.data(), { static_cast<int64_t>(outputsTemp.size()) }, options).clone();
+	}
+
+	// ************************************************************************ //
 	DoopAI::DoopAI(int _axisIntervals, Mode _mode, float _exploreRatio)
 		: m_inputs(MakeInputSpace(_axisIntervals)),
 		m_neuralNet(MLPOptions(GetSheepStateSize() * 2, 64, static_cast<int64_t>(m_inputs.size()))
@@ -144,7 +204,9 @@ namespace Game {
 		m_mode(_mode),
 		m_exploreRatio(_exploreRatio),
 		m_random(0x142bfa)
-	{}
+	{
+		Dataset testSet("gamelogs", _axisIntervals);
+	}
 
 	void DoopAI::operator()(const SheepState& _self, const SheepState& _oth, Input::VirtualInputs& _inp)
 	{

@@ -22,11 +22,11 @@ namespace Game {
 
 		file.write(reinterpret_cast<char*>(&outcome), sizeof(Outcome));
 
-		size_t buf = states.size();
-		file.write(reinterpret_cast<const char*>(&buf), sizeof(buf));
+		const uint64_t numStates = states.size();
+		file.write(reinterpret_cast<const char*>(&numStates), sizeof(uint64_t));
 
-		buf = sizeof(State);
-		file.write(reinterpret_cast<const char*>(&buf), sizeof(buf));
+		const uint64_t stateSize = sizeof(State);
+		file.write(reinterpret_cast<const char*>(&stateSize), sizeof(uint64_t));
 
 		for (const State& state : states)
 		{
@@ -38,17 +38,17 @@ namespace Game {
 	{
 		std::ifstream file(_path, std::ios::binary);
 		file.read(reinterpret_cast<char*>(&outcome), sizeof(Outcome));
-		size_t numStates = 0;
-		file.read(reinterpret_cast<char*>(numStates), sizeof(numStates));
+		uint64_t numStates = 0;
+		file.read(reinterpret_cast<char*>(&numStates), sizeof(uint64_t));
 
-		size_t stateSize = 0;
-		file.read(reinterpret_cast<char*>(stateSize), sizeof(stateSize));
+		uint64_t stateSize = 0;
+		file.read(reinterpret_cast<char*>(&stateSize), sizeof(uint64_t));
 		if (sizeof(State) != stateSize)
 		{
 			std::cerr << "[Error] State size does not match in game log.\"" << _path << "\"\n";
 			std::abort();
 		}
-		states.resize(stateSize);
+		states.resize(numStates);
 		for (State& state : states)
 			file.read(reinterpret_cast<char*>(&state), sizeof(State));
 	}
@@ -94,7 +94,7 @@ namespace Game {
 
 		m_log.outcome = _outcome;
 		const std::string outcomeStr = std::to_string(static_cast<int>(_outcome));
-		m_log.Save(std::to_string(m_totalGameCount) + "_" + outcomeStr + ".dat");
+		m_log.Save("gamelogs/" + std::to_string(m_totalGameCount) + "_" + outcomeStr + ".dat");
 
 		++m_totalGameCount;
 		m_log.states.clear();
