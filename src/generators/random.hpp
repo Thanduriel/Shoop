@@ -91,21 +91,26 @@ namespace Generators {
 	class RandomSampler
 	{
 	public:
-		RandomSampler(GenT& _generator) : m_generator(_generator) {};
+		RandomSampler(GenT& _generator) : m_generator(_generator) {}
+		RandomSampler(RandomSampler&& _oth) = delete;
+		RandomSampler(const RandomSampler& _oth) = delete;
+		RandomSampler& operator=(const RandomSampler&) = delete;
+		RandomSampler& operator=(RandomSampler&&) = delete;
 
-		uint32_t Uniform(int32_t _min, int32_t _max)
+		// Random value in the interval [_min, _max].
+		int32_t Uniform(int32_t _min, int32_t _max)
 		{
-			uint32_t interval = uint32_t(_max - _min + 1);
+			const uint32_t interval = uint32_t(_max - _min + 1);
 			// Do not use integer maximum bounds!
 			Assert(interval != 0, "Do not use integer maximum bounds!");
 
-			uint32_t value = m_generator();
-			return _min + value % interval;
+			const int32_t value = int32_t(m_generator() % interval);
+			return _min + value;
 		}
 
 		float Uniform(float _min = 0.f, float _max = 1.f)
 		{
-			double scale = (_max - _min) / 0xffffffff;
+			const double scale = (_max - _min) / 0xffffffff;
 			return float(_min + scale * m_generator());
 		}
 
@@ -165,10 +170,25 @@ namespace Generators {
 	class RandomGenerator : public DefaultRandomGen, public RandomSampler<DefaultRandomGen>
 	{
 	public:
+		RandomGenerator() = delete;
+
 		RandomGenerator(uint32_t _seed) : 
 			DefaultRandomGen(_seed),
-			RandomSampler<DefaultRandomGen>(static_cast<DefaultRandomGen&>(*this))
+			RandomSampler<DefaultRandomGen>(*static_cast<DefaultRandomGen*>(this))
 		{}
+
+		RandomGenerator(RandomGenerator&& oth) noexcept :
+			DefaultRandomGen(std::move(oth)),
+			RandomSampler<DefaultRandomGen>(*static_cast<DefaultRandomGen*>(this))
+		{}
+
+		RandomGenerator(const RandomGenerator& oth) :
+			DefaultRandomGen(oth),
+			RandomSampler<DefaultRandomGen>(*static_cast<DefaultRandomGen*>(this))
+		{}
+
+		RandomGenerator& operator=(const RandomGenerator&) = delete;
+		RandomGenerator& operator=(RandomGenerator&&) = delete;
 	};
 
 	// A global instance if no deterministic sequence is required.

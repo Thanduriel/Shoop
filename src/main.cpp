@@ -14,7 +14,7 @@ int main()
 #if defined(_MSC_VER)
 #if defined(DEBUG) || defined(_DEBUG)
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	//	_CrtSetBreakAlloc(308);
+//	_CrtSetBreakAlloc(168);
 #endif
 #endif
 	Shoop shoop(1366, 768);

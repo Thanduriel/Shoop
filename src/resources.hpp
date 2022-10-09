@@ -2,13 +2,15 @@
 
 #include <string>
 #include <type_traits>
-
+/*
 #ifdef NDEBUG
 #define CONTENTPATH(path) path
 #else
 #define CONTENTPATH(path) "../" path
 //#define CONTENTPATH(path) path
 #endif
+*/
+#define CONTENTPATH(path) "../" path
 
 /* ******************************
  * Global manager for shared resources

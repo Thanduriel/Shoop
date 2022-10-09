@@ -1,5 +1,9 @@
 #include "aicontrollercomponent.hpp"
 #include "../../../generators/random.hpp"
+#include <fstream>
+#include <ctime>
+#include <chrono>
+#include <iostream>
 
 namespace Game {
 	SheepState::SheepState(const Sheep& _sheep)
@@ -12,12 +16,51 @@ namespace Game {
 	{
 	}
 
-	AIControllerComponent::AIControllerComponent(Sheep& _self, const Rules& _oth, std::function<AIStep> _ai, float _tickRate)
+	void GameLog::Save(const std::string& _path)
+	{
+		std::ofstream file(_path, std::ios::binary);
+
+		file.write(reinterpret_cast<char*>(&outcome), sizeof(Outcome));
+
+		size_t buf = states.size();
+		file.write(reinterpret_cast<const char*>(&buf), sizeof(buf));
+
+		buf = sizeof(State);
+		file.write(reinterpret_cast<const char*>(&buf), sizeof(buf));
+
+		for (const State& state : states)
+		{
+			file.write(reinterpret_cast<char*>(states.data()), sizeof(State));
+		}
+	}
+
+	void GameLog::Load(const std::string& _path)
+	{
+		std::ifstream file(_path, std::ios::binary);
+		file.read(reinterpret_cast<char*>(&outcome), sizeof(Outcome));
+		size_t numStates = 0;
+		file.read(reinterpret_cast<char*>(numStates), sizeof(numStates));
+
+		size_t stateSize = 0;
+		file.read(reinterpret_cast<char*>(stateSize), sizeof(stateSize));
+		if (sizeof(State) != stateSize)
+		{
+			std::cerr << "[Error] State size does not match in game log.\"" << _path << "\"\n";
+			std::abort();
+		}
+		states.resize(stateSize);
+		for (State& state : states)
+			file.read(reinterpret_cast<char*>(&state), sizeof(State));
+	}
+
+	AIControllerComponent::AIControllerComponent(Sheep& _self, const Rules& _oth, std::function<AIStep> _ai, float _tickRate, bool _logGame)
 		: PlayerControllerComponent(_self, m_inputs),
 		m_rules(_oth),
 		m_ai(std::move(_ai)),
 		m_tickTime(_tickRate > 0.f ? 1.f / _tickRate : 0.f),
-		m_timePassed(0.f)
+		m_timePassed(0.f),
+		m_logGame(_logGame),
+		m_totalGameCount(0)
 	{}
 
 	void AIControllerComponent::Process(float _deltaTime)
@@ -29,9 +72,32 @@ namespace Game {
 			UpdatePlayerList();
 
 			if (!m_otherPlayers.empty())
-				m_ai(SheepState(static_cast<Sheep&>(*m_actor)), SheepState(*m_otherPlayers[0]), m_inputs);
+			{
+				const SheepState self(static_cast<Sheep&>(*m_actor));
+				const SheepState oth(*m_otherPlayers[0]);
+				m_ai(self, oth, m_inputs);
+
+				if (m_logGame)
+				{
+					m_log.states.push_back({self, oth, m_inputs.state});
+				}
+			}
+
 		}
 		PlayerControllerComponent::Process(_deltaTime);
+	}
+
+	void AIControllerComponent::Reset(Outcome _outcome)
+	{
+		if (!m_logGame)
+			return;
+
+		m_log.outcome = _outcome;
+		const std::string outcomeStr = std::to_string(static_cast<int>(_outcome));
+		m_log.Save(std::to_string(m_totalGameCount) + "_" + outcomeStr + ".dat");
+
+		++m_totalGameCount;
+		m_log.states.clear();
 	}
 
 	void AIControllerComponent::UpdatePlayerList()

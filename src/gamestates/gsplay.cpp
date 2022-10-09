@@ -22,6 +22,7 @@
 #include "gameplay/elements/textcomponent.hpp"
 #include "input/gamepadinputmanager.hpp"
 #include "gameplay/elements/player/aicontrollercomponent.hpp"
+#include "gameplay/bots/learning.hpp"
 
 namespace Game {
 
@@ -37,7 +38,7 @@ namespace Game {
 	TextComponent* scoreScreen;
 
 	GSPlay::GSPlay(const Utils::Config& _config)
-		: m_rules(new Classic(controllers, _config.GetSection("gameplay").GetValue<int>("numWinsRequired"), 3.f))
+		: m_rules(new Classic(controllers, _config.GetSection("gameplay").GetValue<int>("numWinsRequired"), 3.f, 30.f))
 	{
 		spdlog::info("Creating main state");
 
@@ -64,14 +65,18 @@ namespace Game {
 		auto makeController = [&](Sheep& sheep, Input::InputInterface& inp, bool isAI)
 		{
 			if (isAI)
+			{
 				return std::unique_ptr<PlayerControllerComponent>(
-					new AIControllerComponent(sheep, *m_rules, RandomAI(), 2.f));
-			else 
+					new AIControllerComponent(sheep, *m_rules, DoopAI(5, DoopAI::Mode::SAMPLE, 1.0f), 4.f, true));
+			}
+			else
+			{
 				return std::unique_ptr<PlayerControllerComponent>(
 					new PlayerControllerComponent(sheep, inp, autoCharge));
+			}
 		};
 
-		controller1 = makeController(*sheep1, *input1, true);
+		controller1 = makeController(*sheep1, *input1, false);
 		controller2 = makeController(*sheep2, *input2, true);
 		controllers.push_back(controller1.get());
 		controllers.push_back(controller2.get());
@@ -105,7 +110,8 @@ namespace Game {
 		m_scene.Process(_deltaTime);
 
 		m_rules->Process(_deltaTime);
-		if (m_rules->IsOver() || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R)) m_rules->Reset();
+		if (m_rules->IsOver() || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R)) 
+			m_rules->Reset();
 	}
 
 	void GSPlay::Draw(sf::RenderWindow& _window)

@@ -3,21 +3,25 @@
 
 namespace Game {
 
-	Classic::Classic(ControllerContainer& _controllers, int _numWins, float _waitTime)
+	Classic::Classic(ControllerContainer& _controllers, int _numWins, float _waitTime, float _timeOut)
 		: Rules(_controllers),
 		m_numWinsRequired(_numWins),
 		m_waitTime(_waitTime),
-		m_waitTimeLeft(0.f)
+		m_waitTimeLeft(_timeOut),
+		m_timeOut(_timeOut)
 	{
 
 	}
 
 	void Classic::Process(float _deltaTime)
 	{
+		m_waitTimeLeft -= _deltaTime;
+
 		switch (m_state)
 		{
 		case State::Running:
-			if (std::any_of(m_players.begin(), m_players.end(), Rules::IsDead))
+			if (std::any_of(m_players.begin(), m_players.end(), Rules::IsDead)
+				|| m_waitTimeLeft <= 0.f)
 			{
 				// register win
 				int winner = -1;
@@ -35,10 +39,11 @@ namespace Game {
 				m_waitTimeLeft = m_waitTime;
 
 				m_map->ShowWinnerFlags(winner, m_waitTime);
+				for (int i = 0; i < static_cast<int>(m_players.size()); ++i)
+					m_controllers[i]->Reset(winner == i ? Outcome::Win : (winner < 0 ? Outcome::Draw : Outcome::Loss));
 			}
 			break;
 		case State::Wait:
-			m_waitTimeLeft -= _deltaTime;
 			if (m_waitTimeLeft < 0.f)
 			{
 				ResetMap();
@@ -82,6 +87,7 @@ namespace Game {
 
 	void Classic::ResetMap()
 	{
+		m_waitTimeLeft = m_timeOut;
 		for (size_t i = 0; i < m_players.size(); ++i)
 		{
 			if (m_players[i]) m_players[i]->Destroy();

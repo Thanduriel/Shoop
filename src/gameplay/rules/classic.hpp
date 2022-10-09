@@ -1,12 +1,14 @@
 #pragma once
 #include "gamerules.hpp"
+#include <limits>
 
 namespace Game {
 
 	class Classic : public Rules
 	{
 	public:
-		Classic(ControllerContainer& _controllers, int _numWins, float _waitTime = 2.f);
+		Classic(ControllerContainer& _controllers, int _numWins, float _waitTime = 2.f,
+			float _timeOut = std::numeric_limits<float>::max());
 
 		void Process(float _deltaTime) override;
 		bool IsOver() override;
@@ -26,5 +28,6 @@ namespace Game {
 		State m_state = State::Running;
 		float m_waitTime;
 		float m_waitTimeLeft;
+		float m_timeOut;
 	};
 }
