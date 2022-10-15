@@ -48,14 +48,22 @@ namespace Game {
 	};
 	TORCH_MODULE(MLP);
 
-	class Dataset
+	class Dataset : public torch::data::Dataset<Dataset>
 	{
 	public:
 		Dataset(const std::string& _path, int _numIntervals);
 
+		torch::data::Example<> get(size_t index) override;
+		c10::optional<size_t> size() const override;
 	private:
-		torch::Tensor inputs;
-		torch::Tensor outputs;
+		torch::Tensor m_inputs;
+		torch::Tensor m_outputs;
+	};
+
+	class Trainer 
+	{
+	public:
+		void Train(const std::string& _path, const std::string& _name);
 	};
 
 	} // namespace Learning
@@ -69,7 +77,7 @@ namespace Game {
 		};
 		// @_axisIntervals Number of discrete intervals for the input axis.
 		// Should be odd so that 0 is included.
-		DoopAI(int _axisIntervals, Mode _mode, float _exploreRatio);
+		DoopAI(const std::string& _netName, Mode _mode, float _exploreRatio);
 
 		void operator()(const SheepState& _self, const SheepState& _oth, Input::VirtualInputs& _inp);
 

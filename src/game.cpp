@@ -19,6 +19,7 @@ Shoop::Shoop(int _sizeX, int _sizeY)
 		videoSettings.GetValue<int>("ResolutionY"),
 		videoSettings.GetValue<int>("Fullscreen"));
 	Device::GetWindow().setKeyRepeatEnabled(false);
+	m_noDraw = videoSettings.GetValue<bool>("NoDraw");
 
 	const sf::Image& icon = Resources::Load<sf::Image>("icon");
 	Device::GetWindow().setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
@@ -52,15 +53,24 @@ void Shoop::Run()
 				Device::GetWindow().close();
 		}
 
-		const sf::Time frameTime = clock.restart();
 	//	Device::GetWindow().setTitle(std::to_string(frameTime.asSeconds()));;
 
 		Game::GameState* currentState = m_states.back().get();
-		currentState->Process(frameTime.asSeconds());
 		
-		Device::GetWindow().clear(sf::Color(100, 149, 237));
-		currentState->Draw(Device::GetWindow());
-		Device::GetWindow().display();
+		if (m_noDraw)
+		{
+			currentState->Process(m_targetFrameTime);
+		}
+		else
+		{
+			const sf::Time frameTime = clock.restart();
+
+			currentState->Process(frameTime.asSeconds());
+
+			Device::GetWindow().clear(sf::Color(100, 149, 237));
+			currentState->Draw(Device::GetWindow());
+			Device::GetWindow().display();
+		}
 
 		auto newState = currentState->GetNewState();
 		if (currentState->IsFinished()) m_states.pop_back();
@@ -68,7 +78,8 @@ void Shoop::Run()
 		if (m_states.size() && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape)) 
 			m_states.pop_back();
 		// currentState could be invalid at this point, but the address is still correct
-		if (m_states.size() && currentState != m_states.back().get()) m_states.back()->OnBegin();
+		if (m_states.size() && currentState != m_states.back().get()) 
+			m_states.back()->OnBegin();
 
 		// limit frame rate
 		const sf::Time workTime = clock.getElapsedTime();

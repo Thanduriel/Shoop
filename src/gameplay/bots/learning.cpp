@@ -141,8 +141,12 @@ namespace Game {
 	torch::Tensor ToTensor(const SheepState& _state)
 	{
 		static const c10::TensorOptions options(c10::kFloat);
+		SheepState state = _state;
+		state.position = (state.position - Math::Vec2(8.f, 7.4f)) / 5.f;
+		state.velocity /= 2.5f;
+		state.wheelAngularVelocity /= 30.f;
 
-		return torch::from_blob(const_cast<SheepState*>(&_state), { GetSheepStateSize() }, options);
+		return torch::from_blob(const_cast<SheepState*>(&state), { GetSheepStateSize() }, options).clone();
 	}
 
 	// ************************************************************************ //
@@ -153,7 +157,8 @@ namespace Game {
 		const std::vector<float> values = MakeLinSpace(_numIntervals);
 		std::vector<float> intervals(values.size() + 1);
 		intervals.front() = values.front();
-		intervals.back() = values.back();
+		// make a little larger so that max values are assigned correctly
+		intervals.back() = values.back() + 1.f;
 		for (size_t i = 1; i < values.size(); ++i)
 			intervals[i] = (values[i - 1] + values[i]) * 0.5f;
 
@@ -162,6 +167,8 @@ namespace Game {
 
 		std::vector<torch::Tensor> inputsTemp;
 		std::vector<int> outputsTemp;
+
+		auto testSpace = MakeInputSpace(_numIntervals);
 
 		for (const auto& dirEntry : fs::recursive_directory_iterator(_path))
 		{
@@ -191,35 +198,144 @@ namespace Game {
 				}
 			}
 		}
-		inputs = torch::stack(inputsTemp);
+		m_inputs = torch::stack(inputsTemp);
+	//	auto [stddev, mean] =  torch::std_mean(m_inputs, 0);
+	//	std::cout << mean << " stddev: \n" << stddev << "\n";
 		static const c10::TensorOptions options(c10::kInt);
-		outputs = torch::from_blob(outputsTemp.data(), { static_cast<int64_t>(outputsTemp.size()) }, options).clone();
+		m_outputs = torch::from_blob(outputsTemp.data(), { static_cast<int64_t>(outputsTemp.size()) }, options)
+			.to(c10::kLong, false, true);
+	}
+
+	torch::data::Example<> Dataset::get(size_t index)
+	{
+		return { m_inputs[index], m_outputs[index] };
+	}
+
+	c10::optional<size_t> Dataset::size() const
+	{
+		return m_inputs.sizes()[0];
 	}
 
 	// ************************************************************************ //
-	DoopAI::DoopAI(int _axisIntervals, Mode _mode, float _exploreRatio)
-		: m_inputs(MakeInputSpace(_axisIntervals)),
-		m_neuralNet(MLPOptions(GetSheepStateSize() * 2, 64, static_cast<int64_t>(m_inputs.size()))
-			.layers(6)),
+	// Make a deep copy of a module.
+	template<typename Module>
+	Module clone(const Module& _module)
+	{
+		using ModuleImpl = typename Module::Impl;
+		return Module(std::dynamic_pointer_cast<ModuleImpl>(_module->clone()));
+	}
+
+	constexpr int numIntervals = 5;
+	constexpr int64_t hiddenSize = 48;
+	constexpr int64_t numLayers = 4;
+	constexpr const char* netName = "net.pt";
+
+	void Trainer::Train(const std::string& _path, const std::string& _name)
+	{
+		namespace dat = torch::data;
+
+		const double lr = 0.005;
+		const double wd = 1e-5;
+		const int64_t numOutputs = MakeInputSpace(numIntervals).size();
+		MLP net(MLPOptions(GetSheepStateSize() * 2, hiddenSize, numOutputs).layers(numLayers));
+		MLP bestNet = clone(net);
+
+		torch::Device device(torch::kCPU);
+		if (torch::cuda::is_available())
+			device = torch::kCUDA;
+
+		constexpr bool USE_SEQ_SAMPLER = false;
+		using Sampler = std::conditional_t<USE_SEQ_SAMPLER,
+			dat::samplers::SequentialSampler,
+			dat::samplers::RandomSampler>;
+		auto data_loader = dat::make_data_loader<Sampler>(
+			Dataset(_path, numIntervals).map(dat::transforms::Stack<>()),
+			dat::DataLoaderOptions().batch_size(64));
+
+		float totalLoss = 0.0;
+		float minLoss = std::numeric_limits<float>::max();
+		int forwardRuns = 0;
+
+		auto optimizer = torch::optim::AdamW(net->parameters(), torch::optim::AdamWOptions(lr)
+			.weight_decay(wd));
+
+		const int64_t numEpochs = 128;
+		for (int64_t epoch = 1; epoch <= numEpochs; ++epoch)
+		{
+			net->train();
+			for (dat::Example<>& batch : *data_loader)
+			{
+				torch::Tensor data = batch.data.to(device);
+				torch::Tensor target = batch.target.to(device);
+
+				auto closure = [&]()
+				{
+					net->zero_grad();
+					torch::Tensor output = net->forward(data);
+					torch::Tensor loss = torch::cross_entropy_loss(output, target);
+					totalLoss += loss.item<float>();
+					++forwardRuns; // count runs to normalize the training error
+
+					loss.backward();
+
+					return loss;
+				};
+
+				try {
+					optimizer.step(closure);
+				}
+				catch (c10::Error err)
+				{
+					std::cout << err.msg() << "\n";
+					std::abort();
+				}
+			}
+
+			const float loss = totalLoss / forwardRuns;
+			if (minLoss < loss)
+			{
+				minLoss = loss;
+				bestNet = clone(net);
+			}
+			std::cout << "epoch: " << epoch << " loss: " << loss << "\n";
+		}
+		torch::save(bestNet, _name + ".pt");
+
+	}
+
+	// ************************************************************************ //
+	DoopAI::DoopAI(const std::string& _netName, Mode _mode, float _exploreRatio)
+		: m_inputs(MakeInputSpace(numIntervals)),
+		m_neuralNet(MLPOptions(GetSheepStateSize() * 2, hiddenSize, static_cast<int64_t>(m_inputs.size()))
+			.layers(numLayers)),
 		m_mode(_mode),
 		m_exploreRatio(_exploreRatio),
 		m_random(0x142bfa)
 	{
-		Dataset testSet("gamelogs", _axisIntervals);
+		torch::load(m_neuralNet, _netName + ".pt");
 	}
 
 	void DoopAI::operator()(const SheepState& _self, const SheepState& _oth, Input::VirtualInputs& _inp)
 	{
 		// explore: do a random move
-		if (m_random.Uniform() <= m_exploreRatio)
+		if (m_exploreRatio > 0.f && m_random.Uniform() <= m_exploreRatio)
 		{
 			const int select = m_random.Uniform(0, static_cast<int32_t>(m_inputs.size()) - 1);
 			_inp.state = m_inputs[select];
 			return;
 		}
 
-		torch::Tensor x = torch::concat({ ToTensor(_self), ToTensor(_oth) });
-		x = m_neuralNet->forward(x);
+		torch::Tensor x;
+		try {
+			x = torch::concat({ ToTensor(_self), ToTensor(_oth) });
+			x = torch::softmax(m_neuralNet->forward(x), 0);
+		}
+		catch (c10::Error err)
+		{
+			std::cout << err.msg() << "\n";
+			std::abort();
+		}
+		
 		// for SAMPLE it may be possible to skip initialization if select ~1.f
 		int64_t idx = x.numel() - 1;
 		switch (m_mode)

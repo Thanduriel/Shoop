@@ -1,5 +1,6 @@
 #include "game.hpp"
 #include "Box2D/Box2D.h"
+#include "gameplay/bots/learning.hpp"
 
 // CRT's memory leak detection
 #if defined(_MSC_VER)
@@ -17,6 +18,10 @@ int main()
 //	_CrtSetBreakAlloc(168);
 #endif
 #endif
+//	Game::Learning::Trainer train;
+//	train.Train("gamelogs_0/", "net");
+//	return 0;
+
 	Shoop shoop(1366, 768);
 	shoop.Run();
 

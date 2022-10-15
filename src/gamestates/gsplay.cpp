@@ -67,7 +67,7 @@ namespace Game {
 			if (isAI)
 			{
 				return std::unique_ptr<PlayerControllerComponent>(
-					new AIControllerComponent(sheep, *m_rules, DoopAI(5, DoopAI::Mode::SAMPLE, 0.1f), 4.f, true));
+					new AIControllerComponent(sheep, *m_rules, DoopAI("net", DoopAI::Mode::MAX, 0.0f), 4.f, true));
 			}
 			else
 			{
@@ -108,10 +108,12 @@ namespace Game {
 		m_scene.RegisterActors();
 
 		m_scene.Process(_deltaTime);
-
 		m_rules->Process(_deltaTime);
-		if (m_rules->IsOver() || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R)) 
+		if (m_rules->IsOver() || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R))
+		{
 			m_rules->Reset();
+			spdlog::info("Reseting rules.");
+		}
 	}
 
 	void GSPlay::Draw(sf::RenderWindow& _window)

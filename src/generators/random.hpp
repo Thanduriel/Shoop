@@ -110,7 +110,7 @@ namespace Generators {
 
 		float Uniform(float _min = 0.f, float _max = 1.f)
 		{
-			const double scale = (_max - _min) / 0xffffffff;
+			const double scale = static_cast<double>(_max - _min) / 0xffffffff;
 			return float(_min + scale * m_generator());
 		}
 

@@ -19,6 +19,7 @@ public:
 private:
 	std::vector<std::unique_ptr<Game::GameState>> m_states;
 
+	bool m_noDraw;
 	float m_targetFrameTime;
 	Utils::Config m_config;
 };

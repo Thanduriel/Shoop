@@ -35,5 +35,5 @@ namespace Graphics {
 		static sf::RenderWindow* m_window;
 	};
 
-	const extern Utils::ConfigSection::Initializer<int, 3> VideoSettings;
+	const extern Utils::ConfigSection::Initializer<int, 4> VideoSettings;
 }
