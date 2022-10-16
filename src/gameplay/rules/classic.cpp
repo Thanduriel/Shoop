@@ -3,9 +3,12 @@
 
 namespace Game {
 
-	Classic::Classic(ControllerContainer& _controllers, int _numWins, float _waitTime, float _timeOut)
+	Classic::Classic(ControllerContainer& _controllers, int _numWins, float _waitTime, 
+		float _timeOut, int _maxNumGames)
 		: Rules(_controllers),
 		m_numWinsRequired(_numWins),
+		m_maxNumGames(_maxNumGames),
+		m_numWins(_controllers.size()+1, 0),
 		m_waitTime(_waitTime),
 		m_waitTimeLeft(_timeOut),
 		m_timeOut(_timeOut)
@@ -23,6 +26,7 @@ namespace Game {
 			if (std::any_of(m_players.begin(), m_players.end(), Rules::IsDead)
 				|| m_waitTimeLeft <= 0.f)
 			{
+				++m_numWins.back();
 				// register win
 				int winner = -1;
 				for (size_t i = 0; i < m_players.size(); ++i)
@@ -55,19 +59,19 @@ namespace Game {
 
 	bool Classic::IsOver()
 	{
-		for (size_t i = 0; i < m_numWins.size(); ++i)
+		for (size_t i = 0; i < m_numWins.size()-1; ++i)
 		{
 			if (m_numWins[i] >= m_numWinsRequired)
 				return true;
 		}
 
-		return false;
+		return m_numWins.back() >= m_maxNumGames;
 	}
 
 	void Classic::Start()
 	{
 		m_players.resize(2);
-		m_numWins.resize(2);
+		m_numWins.resize(3);
 		for (ControllerComponent* controller : m_controllers)
 			controller->GetActor().Destroy();
 		ResetMap();
@@ -75,8 +79,8 @@ namespace Game {
 
 	void Classic::Reset()
 	{
-		m_numWins[0] = 0;
-		m_numWins[1] = 0;
+		for (int& i : m_numWins)
+			i = 0;
 		ResetMap();
 	}
 

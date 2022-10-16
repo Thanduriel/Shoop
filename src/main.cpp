@@ -18,9 +18,10 @@ int main()
 //	_CrtSetBreakAlloc(168);
 #endif
 #endif
-//	Game::Learning::Trainer train;
-//	train.Train("gamelogs_0/", "net");
-//	return 0;
+	Learning::ReinforcmentLoop loop;
+	loop.Run();
+	//loop.Evaluate();
+	return 0;
 
 	Shoop shoop(1366, 768);
 	shoop.Run();

@@ -16,6 +16,7 @@ public:
 	~Shoop();
 
 	void Run();
+	Utils::Config& Config() { return m_config; }
 private:
 	std::vector<std::unique_ptr<Game::GameState>> m_states;
 

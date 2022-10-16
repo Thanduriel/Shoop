@@ -13,15 +13,18 @@
 using namespace std::string_literals;
 
 namespace Game {
-	const Utils::ConfigSection::Initializer<int, 2> GamplaySettings(
+	const Utils::ConfigSection::Initializer<int, 3> GamplaySettings(
 		{ {
 			{"autoChargeJump", 0},
-			{"numWinsRequired", 11}
+			{"numWinsRequired", 11},
+			{"maxNumGames", std::numeric_limits<int>::max()}
 		} });
 
-	const Utils::ConfigSection::Initializer<int, 1> GeneralSettings(
+	const Utils::ConfigSection::Initializer<int, 3> GeneralSettings(
 		{ {
-			{"SkipStartScreen", 0}
+			{"SkipStartScreen", 0},
+			{"AutoReset", 1},
+			{"LogGames", 0}
 		} });
 }
 
@@ -120,5 +123,11 @@ namespace Utils {
 		m_sections["video"] = Graphics::VideoSettings;
 		m_sections["gameplay"] = Game::GamplaySettings;
 		m_sections["general"] = Game::GeneralSettings;
+
+#ifdef LEARNING_AI
+		m_sections["learning"].SetValue("LogPath", std::string("gamelogs"));
+		m_sections["learning"].SetValue("NetworkName", std::string("net"));
+		m_sections["learning"].SetValue("ExploreRatio", 0.f);
+#endif
 	}
 }

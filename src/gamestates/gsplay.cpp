@@ -15,7 +15,6 @@
 #include "gameplay/elements/physicalparticle.hpp"
 #include "generators/random.hpp"
 #include "gameplay/elements/factory.hpp"
-#include "gameplay/elements/player/playercontrollercomponent.hpp"
 #include "input/keyboardinputmanager.hpp"
 #include "SFML/Graphics.hpp"
 #include "gameplay/core/singlecomponentactor.hpp"
@@ -28,17 +27,11 @@ namespace Game {
 
 	using namespace Math;
 
-	std::unique_ptr<PlayerControllerComponent> controller1;
-	std::unique_ptr<PlayerControllerComponent> controller2;
-
-	std::unique_ptr<Input::InputInterface> input1;
-	std::unique_ptr<Input::InputInterface> input2;
-
-	ControllerContainer controllers;
-	TextComponent* scoreScreen;
-
 	GSPlay::GSPlay(const Utils::Config& _config)
-		: m_rules(new Classic(controllers, _config.GetSection("gameplay").GetValue<int>("numWinsRequired"), 3.f, 30.f))
+		: m_rules(new Classic(m_controllers, _config.GetSection("gameplay").GetValue<int>("numWinsRequired"), 
+			3.f, 30.f,
+			_config.GetSection("gameplay").GetValue<int>("maxNumGames"))),
+		m_autoReset(_config.GetSection("general").GetValue<bool>("AutoReset"))
 	{
 		spdlog::info("Creating main state");
 
@@ -47,13 +40,13 @@ namespace Game {
 		m_rules->SetMap(*map);
 
 		if (sf::Joystick::isConnected(0))
-			input1.reset(new Input::GamePadInputInterface(_config.GetSection("gamepad1"), 0));
+			m_input1.reset(new Input::GamePadInputInterface(_config.GetSection("gamepad1"), 0));
 		else
-			input1.reset(new Input::KeyBoardInputInterface(_config.GetSection("keyboard2")));
+			m_input1.reset(new Input::KeyBoardInputInterface(_config.GetSection("keyboard2")));
 		if (sf::Joystick::isConnected(1))
-			input2.reset(new Input::GamePadInputInterface(_config.GetSection("gamepad1"), 1));
+			m_input2.reset(new Input::GamePadInputInterface(_config.GetSection("gamepad1"), 1));
 		else
-			input2.reset(new Input::KeyBoardInputInterface(_config.GetSection("keyboard1")));
+			m_input2.reset(new Input::KeyBoardInputInterface(_config.GetSection("keyboard1")));
 
 		const sf::Color playerRed(206, 0, 0); 
 		const sf::Color playerGreen(12, 183, 0);
@@ -62,12 +55,23 @@ namespace Game {
 		Sheep* sheep2 = new Sheep(Vec2(), playerGreen);
 		const Utils::ConfigSection& gamplaySettings = _config.GetSection("gameplay");
 		const bool autoCharge = gamplaySettings.GetValue<int>("autoChargeJump");
+
+		const Utils::ConfigSection& learnSettings = _config.GetSection("learning");
+		int controllerCount = 0;
 		auto makeController = [&](Sheep& sheep, Input::InputInterface& inp, bool isAI)
 		{
+			const std::string controllerId = std::to_string(controllerCount);
+			++controllerCount;
 			if (isAI)
 			{
+				const std::string netNameKey = "NetworkName" + controllerId;
+				const bool logGames = _config.GetSection("general").GetValue<int>("LogGames");
 				return std::unique_ptr<PlayerControllerComponent>(
-					new AIControllerComponent(sheep, *m_rules, DoopAI("net", DoopAI::Mode::MAX, 0.0f), 4.f, true));
+					new AIControllerComponent(sheep, *m_rules, 
+						DoopAI(learnSettings.GetValue<std::string>(netNameKey), DoopAI::Mode::SAMPLE, learnSettings.GetValue<float>("ExploreRatio")),
+						4.f, controllerId,
+						logGames,
+						logGames ? learnSettings.GetValue<std::string>("LogPath") : ""));
 			}
 			else
 			{
@@ -76,25 +80,25 @@ namespace Game {
 			}
 		};
 
-		controller1 = makeController(*sheep1, *input1, true);
-		controller2 = makeController(*sheep2, *input2, true);
-		controllers.push_back(controller1.get());
-		controllers.push_back(controller2.get());
+		m_controller1 = makeController(*sheep1, *m_input1, true);
+		m_controller2 = makeController(*sheep2, *m_input2, true);
+		m_controllers.push_back(m_controller1.get());
+		m_controllers.push_back(m_controller2.get());
 		// register after to also register the controllers
 		m_scene.Add(*sheep1);
 		m_scene.Add(*sheep2);
 
 		const Math::Vec2 worldSize = Graphics::Device::GetSizeWorldSpace();
 
-		RemoteControl* remoteControl1 = new RemoteControl(worldSize * Vec2(0.125f, -0.02f), *controller1, false, playerRed);
-		RemoteControl* remoteControl2 = new RemoteControl(worldSize * Vec2(1.f-0.125f, -0.02f), *controller2, true, playerGreen);
+		RemoteControl* remoteControl1 = new RemoteControl(worldSize * Vec2(0.125f, -0.02f), *m_controller1, false, playerRed);
+		RemoteControl* remoteControl2 = new RemoteControl(worldSize * Vec2(1.f-0.125f, -0.02f), *m_controller2, true, playerGreen);
 		m_scene.Add(*remoteControl1);
 		m_scene.Add(*remoteControl2);
 
 		auto scoreActor = new SingleComponentActor<TextComponent>(worldSize * Vec2(0.5f, 0.75f),
 			Resources::Load<sf::Font>("Anaktoria"), 64);
 		m_scene.Add(*scoreActor);
-		scoreScreen = &scoreActor->GetComponent();
+		m_scoreScreen = &scoreActor->GetComponent();
 
 		m_rules->Start();
 	}
@@ -109,11 +113,27 @@ namespace Game {
 
 		m_scene.Process(_deltaTime);
 		m_rules->Process(_deltaTime);
-		if (m_rules->IsOver() || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R))
+
+		if (m_rules->IsOver())
 		{
-			m_rules->Reset();
-			spdlog::info("Reseting rules.");
+			if (m_autoReset)
+			{
+				m_rules->Reset();
+				spdlog::info("Reseting rules.");
+			}
+			else
+			{
+				Finish();
+				if (Classic* rules = dynamic_cast<Classic*>(m_rules.get()))
+				{
+					auto& results = rules->GetResults();
+					spdlog::info("{} {} {}", results[0], results[1], results[2] - results[0] - results[1]);
+				}
+			}
 		}
+
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R))
+			m_rules->Reset();
 	}
 
 	void GSPlay::Draw(sf::RenderWindow& _window)
@@ -121,6 +141,6 @@ namespace Game {
 		Graphics::Device::SetView(true);
 		m_scene.Draw(_window);
 
-		scoreScreen->SetText(m_rules->GetScore());
+		m_scoreScreen->SetText(m_rules->GetScore());
 	}
 }

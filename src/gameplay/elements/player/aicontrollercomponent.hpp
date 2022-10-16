@@ -35,7 +35,8 @@ namespace Game {
 		std::vector<State> states;
 
 		void Save(const std::string& _path);
-		void Load(const std::string& _path);
+		bool Read(std::ifstream& _stream);
+		static std::vector<GameLog> Load(const std::string& _path);
 	};
 
 	using AIStep = void(const SheepState&, const SheepState&, Input::VirtualInputs&);
@@ -45,7 +46,9 @@ namespace Game {
 	public:
 		// @param _tickRate Frequency at which the AI step function should be performed [ticks per s]
 		AIControllerComponent(Sheep& _self, const Rules& _rules, 
-			std::function<AIStep> _ai, float _tickRate = 0.f, bool _logGame = false);
+			std::function<AIStep> _ai, float _tickRate = 0.f, 
+			const std::string& _name = "", bool _logGame = false,
+			const std::string& _logPath = "");
 
 		void Process(float _deltaTime) override;
 		void Reset(Outcome _outcome) override;
@@ -62,6 +65,8 @@ namespace Game {
 		bool m_logGame;
 		GameLog m_log;
 		int m_totalGameCount;
+		std::string m_name;
+		std::string m_logPath;
 	};
 
 	constexpr std::array<Input::Action, 1> GAME_ACTIONS = {

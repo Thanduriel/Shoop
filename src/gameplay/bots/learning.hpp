@@ -13,9 +13,8 @@
 #include "../elements/player/aicontrollercomponent.hpp"
 #include "generators/random.hpp"
 
-namespace Game {
 
-	namespace Learning {
+namespace Learning {
 
 	struct MLPOptions {
 		MLPOptions(int64_t in_size, int64_t hidden_size, int64_t out_size)
@@ -60,13 +59,22 @@ namespace Game {
 		torch::Tensor m_outputs;
 	};
 
-	class Trainer 
+	class Trainer
 	{
 	public:
 		void Train(const std::string& _path, const std::string& _name);
 	};
 
-	} // namespace Learning
+	class ReinforcmentLoop
+	{
+	public:
+		void Run();
+		void Evaluate();
+	};
+
+} // namespace Learning
+
+namespace Game {
 
 	class DoopAI
 	{

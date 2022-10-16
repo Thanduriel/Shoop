@@ -18,7 +18,7 @@ namespace Game {
 
 	void GameLog::Save(const std::string& _path)
 	{
-		std::ofstream file(_path, std::ios::binary);
+		std::ofstream file(_path, std::ios::binary | std::ios::app);
 
 		file.write(reinterpret_cast<char*>(&outcome), sizeof(Outcome));
 
@@ -34,33 +34,51 @@ namespace Game {
 		}
 	}
 
-	void GameLog::Load(const std::string& _path)
+	bool GameLog::Read(std::ifstream& _stream)
 	{
-		std::ifstream file(_path, std::ios::binary);
-		file.read(reinterpret_cast<char*>(&outcome), sizeof(Outcome));
+		if (!_stream.read(reinterpret_cast<char*>(&outcome), sizeof(Outcome)))
+			return false;
 		uint64_t numStates = 0;
-		file.read(reinterpret_cast<char*>(&numStates), sizeof(uint64_t));
+		_stream.read(reinterpret_cast<char*>(&numStates), sizeof(uint64_t));
 
 		uint64_t stateSize = 0;
-		file.read(reinterpret_cast<char*>(&stateSize), sizeof(uint64_t));
+		_stream.read(reinterpret_cast<char*>(&stateSize), sizeof(uint64_t));
 		if (sizeof(State) != stateSize)
 		{
-			std::cerr << "[Error] State size does not match in game log.\"" << _path << "\"\n";
+			std::cerr << "[Error] State size does not match in game log.\n";
 			std::abort();
 		}
 		states.resize(numStates);
 		for (State& state : states)
-			file.read(reinterpret_cast<char*>(&state), sizeof(State));
+			_stream.read(reinterpret_cast<char*>(&state), sizeof(State));
+
+		return true;
 	}
 
-	AIControllerComponent::AIControllerComponent(Sheep& _self, const Rules& _oth, std::function<AIStep> _ai, float _tickRate, bool _logGame)
+	std::vector<GameLog> GameLog::Load(const std::string& _path)
+	{
+		std::ifstream file(_path, std::ios::binary);
+
+		std::vector<GameLog> gameLogs;
+		GameLog log;
+		while (log.Read(file))
+			gameLogs.push_back(log);
+
+		return gameLogs;
+	}
+
+	AIControllerComponent::AIControllerComponent(Sheep& _self, const Rules& _oth, 
+		std::function<AIStep> _ai, float _tickRate, 
+		const std::string& _name, bool _logGame, const std::string& _logPath)
 		: PlayerControllerComponent(_self, m_inputs),
 		m_rules(_oth),
 		m_ai(std::move(_ai)),
 		m_tickTime(_tickRate > 0.f ? 1.f / _tickRate : 0.f),
 		m_timePassed(0.f),
 		m_logGame(_logGame),
-		m_totalGameCount(0)
+		m_totalGameCount(0),
+		m_name(_name),
+		m_logPath(_logPath)
 	{}
 
 	void AIControllerComponent::Process(float _deltaTime)
@@ -94,7 +112,7 @@ namespace Game {
 
 		m_log.outcome = _outcome;
 		const std::string outcomeStr = std::to_string(static_cast<int>(_outcome));
-		m_log.Save("gamelogs/" + std::to_string(m_totalGameCount) + "_" + outcomeStr + ".dat");
+		m_log.Save(m_logPath + "/" + m_name + ".dat");
 
 		++m_totalGameCount;
 		m_log.states.clear();

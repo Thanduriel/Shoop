@@ -76,6 +76,14 @@ namespace Utils {
 			}
 		}
 
+		template<typename T>
+		void SetValue(const std::string& _name, T _val)
+		{
+			auto it = m_values.find(_name);
+
+			m_values[_name] = Details::Serialize(_val);
+		}
+
 		// Add contents of another section.
 		ConfigSection& operator +=(const ConfigSection& _other);
 	private:

@@ -1,11 +1,13 @@
 #include "learning.hpp"
+#include "game.hpp"
 #include <filesystem>
 
-namespace Game {
+namespace fs = std::filesystem;
 
-	namespace Learning {
+namespace Learning {
+	using namespace Game;
 
-	MLPImpl::MLPImpl(const Options& options_) : options(options_), out(nullptr) 
+	MLPImpl::MLPImpl(const Options& options_) : options(options_), out(nullptr)
 	{
 		reset();
 	}
@@ -42,7 +44,7 @@ namespace Game {
 		register_module("out", out);
 	}
 
-	torch::Tensor MLPImpl::forward(torch::Tensor x) 
+	torch::Tensor MLPImpl::forward(torch::Tensor x)
 	{
 		auto forwardLayer = [this](size_t idx, torch::Tensor x) {
 			x = linLayers[idx]->forward(x);
@@ -51,12 +53,12 @@ namespace Game {
 		};
 		x = forwardLayer(0, x);
 
-		if (options.skip_connections()) 
+		if (options.skip_connections())
 		{
 			for (size_t i = 1; i < linLayers.size(); ++i)
 				x = forwardLayer(i, x) + x;
 		}
-		else 
+		else
 		{
 			for (size_t i = 1; i < linLayers.size(); ++i)
 				x = forwardLayer(i, x);
@@ -64,10 +66,6 @@ namespace Game {
 
 		return out(x);
 	}
-	
-	} // namespace Learning
-
-	using namespace Learning;
 
 	std::vector<float> MakeLinSpace(int _numIntervals)
 	{
@@ -130,7 +128,7 @@ namespace Game {
 		return inputSpace;
 	}
 
-	constexpr int64_t GetSheepStateSize() 
+	constexpr int64_t GetSheepStateSize()
 	{
 		constexpr int64_t NUM_VALUES = 8;
 		static_assert(sizeof(SheepState) == sizeof(float) * NUM_VALUES);
@@ -152,8 +150,6 @@ namespace Game {
 	// ************************************************************************ //
 	Dataset::Dataset(const std::string& _path, int _numIntervals)
 	{
-		namespace fs = std::filesystem;
-
 		const std::vector<float> values = MakeLinSpace(_numIntervals);
 		std::vector<float> intervals(values.size() + 1);
 		intervals.front() = values.front();
@@ -170,17 +166,21 @@ namespace Game {
 
 		auto testSpace = MakeInputSpace(_numIntervals);
 
+		std::vector<GameLog> gameLogs;
 		for (const auto& dirEntry : fs::recursive_directory_iterator(_path))
 		{
-			GameLog log; 
-			log.Load(dirEntry.path().string());
+			std::vector<GameLog> logs = GameLog::Load(dirEntry.path().string());
+			gameLogs.insert(gameLogs.end(), logs.begin(), logs.end());
+		}
+		for (const GameLog& log : gameLogs)
+		{
 			if (log.outcome == Outcome::Win)
 			{
 				for (const GameLog::State& state : log.states)
 				{
 					int idx = 0;
 					int stride = 1;
-					for (size_t ax = 0; ax < numAxis; ++ax) 
+					for (size_t ax = 0; ax < numAxis; ++ax)
 					{
 						auto it = std::upper_bound(intervals.begin(), intervals.end(), state.input.axis[ax]);
 						idx += stride * (std::distance(intervals.begin(), it) - 1);
@@ -199,8 +199,8 @@ namespace Game {
 			}
 		}
 		m_inputs = torch::stack(inputsTemp);
-	//	auto [stddev, mean] =  torch::std_mean(m_inputs, 0);
-	//	std::cout << mean << " stddev: \n" << stddev << "\n";
+		//	auto [stddev, mean] =  torch::std_mean(m_inputs, 0);
+		//	std::cout << mean << " stddev: \n" << stddev << "\n";
 		static const c10::TensorOptions options(c10::kInt);
 		m_outputs = torch::from_blob(outputsTemp.data(), { static_cast<int64_t>(outputsTemp.size()) }, options)
 			.to(c10::kLong, false, true);
@@ -228,6 +228,7 @@ namespace Game {
 	constexpr int numIntervals = 5;
 	constexpr int64_t hiddenSize = 48;
 	constexpr int64_t numLayers = 4;
+	constexpr int64_t batchSize = 256;
 	constexpr const char* netName = "net.pt";
 
 	void Trainer::Train(const std::string& _path, const std::string& _name)
@@ -250,7 +251,7 @@ namespace Game {
 			dat::samplers::RandomSampler>;
 		auto data_loader = dat::make_data_loader<Sampler>(
 			Dataset(_path, numIntervals).map(dat::transforms::Stack<>()),
-			dat::DataLoaderOptions().batch_size(64));
+			dat::DataLoaderOptions().batch_size(batchSize));
 
 		float totalLoss = 0.0;
 		float minLoss = std::numeric_limits<float>::max();
@@ -259,7 +260,7 @@ namespace Game {
 		auto optimizer = torch::optim::AdamW(net->parameters(), torch::optim::AdamWOptions(lr)
 			.weight_decay(wd));
 
-		const int64_t numEpochs = 128;
+		const int64_t numEpochs = 256;
 		for (int64_t epoch = 1; epoch <= numEpochs; ++epoch)
 		{
 			net->train();
@@ -304,6 +305,80 @@ namespace Game {
 	}
 
 	// ************************************************************************ //
+	void ReinforcmentLoop::Run()
+	{
+		std::vector<std::string> neuralNetworkNames;
+		neuralNetworkNames.push_back("");
+
+		Shoop game(1366, 768);
+		auto& section = game.Config().GetSection("learning");
+		game.Config().GetSection("general").SetValue("LogGames", 1);
+//		auto& gameplayConf = game.Config().GetSection("gameplay");
+
+		constexpr int numEpochs = 8;
+		for (int i = 0; i < numEpochs; ++i)
+		{
+			const std::string epoch = std::to_string(i);
+			const std::string path = "gamelogs_" + epoch;
+			const std::string netName = "net_" + epoch;
+
+			// create data
+			spdlog::info("Generating data {}.", path);
+			fs::create_directory(path);
+			section.SetValue("LogPath", path);
+			section.SetValue("NetworkName0", neuralNetworkNames.back());
+			section.SetValue("NetworkName1", neuralNetworkNames.back());
+			const float explore = i == 0 ? 1.f : (1.f - (i / static_cast<float>(numEpochs))) * 0.5f;
+			section.SetValue("ExploreRatio", explore);
+			section.SetValue("LogGames", 1);
+			game.Run();
+
+			// train new network
+			spdlog::info("Training network {}.", netName);
+			Trainer train;
+			train.Train(path, netName);
+			neuralNetworkNames.push_back(netName);
+		}
+	}
+
+	void ReinforcmentLoop::Evaluate()
+	{
+		Shoop game(1366, 768);
+		std::vector<std::string> neuralNetworkNames;
+
+		for (int i = 0; i < 8; ++i)
+			neuralNetworkNames.push_back("net_" + std::to_string(i));
+
+		auto& learningConf = game.Config().GetSection("learning");
+		learningConf.SetValue("LogGames", 0);
+		learningConf.SetValue("ExploreRatio", 0.0);
+
+		auto& gameplayConf = game.Config().GetSection("gameplay");
+		gameplayConf.SetValue("numWinsRequired", std::numeric_limits<int>::max());
+		gameplayConf.SetValue("maxNumGames", 512);
+
+		for(size_t i = 0; i < neuralNetworkNames.size(); ++i)
+			for (size_t j = i; j < neuralNetworkNames.size(); ++j)
+			{
+				spdlog::info("{} vs {}", neuralNetworkNames[i], neuralNetworkNames[j]);
+				learningConf.SetValue("NetworkName0", neuralNetworkNames[i]);
+				learningConf.SetValue("NetworkName1", neuralNetworkNames[j]);
+				game.Run();
+				learningConf.SetValue("NetworkName0", neuralNetworkNames[j]);
+				learningConf.SetValue("NetworkName1", neuralNetworkNames[i]);
+				game.Run();
+			}
+	}
+
+} // namespace Learning
+
+
+	// ************************************************************************ //
+
+namespace Game {
+
+	using namespace Learning;
+
 	DoopAI::DoopAI(const std::string& _netName, Mode _mode, float _exploreRatio)
 		: m_inputs(MakeInputSpace(numIntervals)),
 		m_neuralNet(MLPOptions(GetSheepStateSize() * 2, hiddenSize, static_cast<int64_t>(m_inputs.size()))
@@ -312,7 +387,9 @@ namespace Game {
 		m_exploreRatio(_exploreRatio),
 		m_random(0x142bfa)
 	{
-		torch::load(m_neuralNet, _netName + ".pt");
+		const std::string netName = _netName + ".pt";
+		if (fs::exists(netName))
+			torch::load(m_neuralNet, netName);
 	}
 
 	void DoopAI::operator()(const SheepState& _self, const SheepState& _oth, Input::VirtualInputs& _inp)
