@@ -23,13 +23,13 @@ namespace Game {
 		void Process(float _deltaTime) override;
 		void Draw(sf::RenderWindow& _window) override;
 	private: 
-
+		ControllerContainer m_controllers;
 		Scene m_scene;
 		std::unique_ptr<Rules> m_rules;
 		bool m_autoReset;
 
-		ControllerContainer m_controllers;
 		TextComponent* m_scoreScreen;
+		int m_pairingIdx; // for ResultsMatrix
 
 		std::unique_ptr<PlayerControllerComponent> m_controller1;
 		std::unique_ptr<PlayerControllerComponent> m_controller2;

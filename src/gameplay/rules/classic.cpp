@@ -8,7 +8,6 @@ namespace Game {
 		: Rules(_controllers),
 		m_numWinsRequired(_numWins),
 		m_maxNumGames(_maxNumGames),
-		m_numWins(_controllers.size()+1, 0),
 		m_waitTime(_waitTime),
 		m_waitTimeLeft(_timeOut),
 		m_timeOut(_timeOut)
@@ -70,8 +69,8 @@ namespace Game {
 
 	void Classic::Start()
 	{
-		m_players.resize(2);
-		m_numWins.resize(3);
+		m_players.resize(m_controllers.size());
+		m_numWins.resize(m_controllers.size() + 1, 0);
 		for (ControllerComponent* controller : m_controllers)
 			controller->GetActor().Destroy();
 		ResetMap();
@@ -87,6 +86,13 @@ namespace Game {
 	std::string Classic::GetScore()
 	{
 		return std::to_string(m_numWins[0]) + " : " + std::to_string(m_numWins[1]);
+	}
+
+	std::vector<int> Classic::GetResults() const
+	{
+		auto res = m_numWins; 
+		res[2] = res[2] - res[1] - res[0]; 
+		return res;
 	}
 
 	void Classic::ResetMap()

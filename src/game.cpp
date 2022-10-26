@@ -15,11 +15,11 @@ Shoop::Shoop(int _sizeX, int _sizeY)
 	m_config(Utils::CONFIG_PATH)
 {
 	const Utils::ConfigSection& videoSettings = m_config.GetSection("video");
-	Device::Init(videoSettings.GetValue<int>("ResolutionX"), 
+	m_noDraw = videoSettings.GetValue<bool>("NoDraw");
+	Device::Init(videoSettings.GetValue<int>("ResolutionX"),
 		videoSettings.GetValue<int>("ResolutionY"),
 		videoSettings.GetValue<int>("Fullscreen"));
 	Device::GetWindow().setKeyRepeatEnabled(false);
-	m_noDraw = videoSettings.GetValue<bool>("NoDraw");
 
 	const sf::Image& icon = Resources::Load<sf::Image>("icon");
 	Device::GetWindow().setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
@@ -28,7 +28,10 @@ Shoop::Shoop(int _sizeX, int _sizeY)
 // explicit definition here for the destructor of GameState
 Shoop::~Shoop()
 {
-	Graphics::Device::Close();
+	// if multiple threads create a game object this will break thinks
+	// noDraw is not necessarily the correct indicator
+	if(!m_noDraw)
+		Graphics::Device::Close();
 }
 
 void Shoop::Run()

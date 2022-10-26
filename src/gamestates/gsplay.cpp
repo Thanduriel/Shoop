@@ -3,6 +3,7 @@
 #include "gameplay/rules/classic.hpp"
 #include "gameplay/maps/map.hpp"
 #include "spdlog/spdlog.h"
+#include "gameplay/bots/evaluation.hpp"
 
 // test related
 #include "gameplay/elements/spriteomponent.hpp"
@@ -57,6 +58,7 @@ namespace Game {
 		const bool autoCharge = gamplaySettings.GetValue<int>("autoChargeJump");
 
 		const Utils::ConfigSection& learnSettings = _config.GetSection("learning");
+		m_pairingIdx = learnSettings.GetValue<ResultsMatrix::FlatIndex>("PairingIdx");
 		int controllerCount = 0;
 		auto makeController = [&](Sheep& sheep, Input::InputInterface& inp, bool isAI)
 		{
@@ -126,8 +128,12 @@ namespace Game {
 				Finish();
 				if (Classic* rules = dynamic_cast<Classic*>(m_rules.get()))
 				{
-					auto& results = rules->GetResults();
-					spdlog::info("{} {} {}", results[0], results[1], results[2] - results[0] - results[1]);
+					auto results = rules->GetResults();
+					spdlog::info("Finished match with score {}/{} draws:{}.", results[0], results[1], results[2]);
+					int* resPtr = g_resultsMatrix->Get(m_pairingIdx);
+					// add so that the mirror match is accumulated
+					for (size_t i = 0; i < results.size(); ++i) 
+						resPtr[i] += results[i];
 				}
 			}
 		}

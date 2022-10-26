@@ -2,12 +2,6 @@
 
 #ifdef LEARNING_AI
 #include <type_traits>
-/*namespace std {
-	template< class F, class... ArgTypes>
-	using result_of = invoke_result < F, ArgTypes...>;
-	template< class F, class... ArgTypes>
-	using result_of_t = typename invoke_result<F, ArgTypes...>::type;
-}*/
 
 #include <torch/torch.h>
 #include "../elements/player/aicontrollercomponent.hpp"
@@ -31,7 +25,8 @@ namespace Learning {
 		//TORCH_ARG(ACT, activation) = ACT::tanh;
 	};
 
-	struct MLPImpl : public torch::nn::Cloneable<MLPImpl > {
+	struct MLPImpl : public torch::nn::Cloneable<MLPImpl > 
+	{
 		using Options = MLPOptions;
 
 		explicit MLPImpl(const Options& _options);
@@ -50,10 +45,11 @@ namespace Learning {
 	class Dataset : public torch::data::Dataset<Dataset>
 	{
 	public:
-		Dataset(const std::string& _path, int _numIntervals);
+		Dataset(const std::string& _path, int _numIntervals, torch::Device _device = torch::kCPU);
 
 		torch::data::Example<> get(size_t index) override;
 		c10::optional<size_t> size() const override;
+		void to(torch::Device _device);
 	private:
 		torch::Tensor m_inputs;
 		torch::Tensor m_outputs;
@@ -68,8 +64,14 @@ namespace Learning {
 	class ReinforcmentLoop
 	{
 	public:
+		ReinforcmentLoop(const std::string& _netName = "net_", const std::string _logName = "gamelogs_");
+
 		void Run();
 		void Evaluate();
+
+	private:
+		std::string m_netName;
+		std::string m_logName;
 	};
 
 } // namespace Learning

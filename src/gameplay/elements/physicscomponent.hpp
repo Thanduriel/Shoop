@@ -127,7 +127,7 @@ namespace Game {
 	namespace Details {
 		class PhysicsWorldWrapper {
 		private:
-			static b2World* m_world;
+			static thread_local b2World* m_world;
 
 			// physics components can access the world for creation and destruction
 			friend b2Body& PhysicsBodyComponent::Create(const b2BodyDef&, b2FixtureDef&);

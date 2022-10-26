@@ -10,7 +10,7 @@ namespace Game {
 
 	using namespace Math;
 
-	b2World* Details::PhysicsWorldWrapper::m_world;
+	thread_local b2World* Details::PhysicsWorldWrapper::m_world;
 
 	PhysicsBodyComponent::PhysicsBodyComponent(Actor& _actor, Math::Transformation* _overwriteTransform)
 		: ProcessComponent(_actor, _overwriteTransform),

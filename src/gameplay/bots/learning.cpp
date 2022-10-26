@@ -1,6 +1,8 @@
 #include "learning.hpp"
 #include "game.hpp"
+#include "evaluation.hpp"
 #include <filesystem>
+#include <thread>
 
 namespace fs = std::filesystem;
 
@@ -148,7 +150,7 @@ namespace Learning {
 	}
 
 	// ************************************************************************ //
-	Dataset::Dataset(const std::string& _path, int _numIntervals)
+	Dataset::Dataset(const std::string& _path, int _numIntervals, torch::Device _device)
 	{
 		const std::vector<float> values = MakeLinSpace(_numIntervals);
 		std::vector<float> intervals(values.size() + 1);
@@ -198,12 +200,12 @@ namespace Learning {
 				}
 			}
 		}
-		m_inputs = torch::stack(inputsTemp);
+		m_inputs = torch::stack(inputsTemp).to(_device);
 		//	auto [stddev, mean] =  torch::std_mean(m_inputs, 0);
 		//	std::cout << mean << " stddev: \n" << stddev << "\n";
 		static const c10::TensorOptions options(c10::kInt);
 		m_outputs = torch::from_blob(outputsTemp.data(), { static_cast<int64_t>(outputsTemp.size()) }, options)
-			.to(c10::kLong, false, true);
+			.to(_device, c10::kLong, false, true);
 	}
 
 	torch::data::Example<> Dataset::get(size_t index)
@@ -216,6 +218,12 @@ namespace Learning {
 		return m_inputs.sizes()[0];
 	}
 
+	void Dataset::to(torch::Device _device)
+	{
+		m_inputs = m_inputs.to(_device);
+		m_outputs = m_outputs.to(_device);
+	}
+
 	// ************************************************************************ //
 	// Make a deep copy of a module.
 	template<typename Module>
@@ -225,32 +233,49 @@ namespace Learning {
 		return Module(std::dynamic_pointer_cast<ModuleImpl>(_module->clone()));
 	}
 
+	torch::Tensor LabelMSE(torch::Tensor pred, torch::Tensor target, int numClasses, float k = 1.f, float M = 1.f)
+	{
+		using namespace torch::indexing;
+
+		const float c = 1.f / numClasses;
+		torch::Tensor correct = k * (pred.index({ Slice(), target }) - M).square();
+		// subtracting the true label is easier then just selecting the false ones
+		torch::Tensor oth = pred.square().sum(-1) - pred.index({ Slice(), target }).square();
+
+		return c * (correct + oth).mean();
+	}
+
 	constexpr int numIntervals = 5;
 	constexpr int64_t hiddenSize = 48;
 	constexpr int64_t numLayers = 4;
-	constexpr int64_t batchSize = 256;
-	constexpr const char* netName = "net.pt";
+	constexpr int64_t batchSize = 1024;
+	constexpr int64_t numEpochs = 512;
+	constexpr bool useCrossEntropy = true;
 
 	void Trainer::Train(const std::string& _path, const std::string& _name)
 	{
 		namespace dat = torch::data;
 
-		const double lr = 0.005;
+		const double lr = 0.01;
 		const double wd = 1e-5;
 		const int64_t numOutputs = MakeInputSpace(numIntervals).size();
 		MLP net(MLPOptions(GetSheepStateSize() * 2, hiddenSize, numOutputs).layers(numLayers));
 		MLP bestNet = clone(net);
 
 		torch::Device device(torch::kCPU);
-		if (torch::cuda::is_available())
+		if (torch::cuda::is_available()) 
+		{
 			device = torch::kCUDA;
+			net->to(device);
+			spdlog::info("Using cuda for training.");
+		}
 
 		constexpr bool USE_SEQ_SAMPLER = false;
 		using Sampler = std::conditional_t<USE_SEQ_SAMPLER,
 			dat::samplers::SequentialSampler,
 			dat::samplers::RandomSampler>;
 		auto data_loader = dat::make_data_loader<Sampler>(
-			Dataset(_path, numIntervals).map(dat::transforms::Stack<>()),
+			Dataset(_path, numIntervals, device).map(dat::transforms::Stack<>()),
 			dat::DataLoaderOptions().batch_size(batchSize));
 
 		float totalLoss = 0.0;
@@ -260,20 +285,20 @@ namespace Learning {
 		auto optimizer = torch::optim::AdamW(net->parameters(), torch::optim::AdamWOptions(lr)
 			.weight_decay(wd));
 
-		const int64_t numEpochs = 256;
 		for (int64_t epoch = 1; epoch <= numEpochs; ++epoch)
 		{
 			net->train();
 			for (dat::Example<>& batch : *data_loader)
 			{
-				torch::Tensor data = batch.data.to(device);
-				torch::Tensor target = batch.target.to(device);
-
 				auto closure = [&]()
 				{
 					net->zero_grad();
-					torch::Tensor output = net->forward(data);
-					torch::Tensor loss = torch::cross_entropy_loss(output, target);
+					torch::Tensor output = net->forward(batch.data);
+					torch::Tensor loss;
+					if constexpr (useCrossEntropy)
+						loss = torch::cross_entropy_loss(output, batch.target);
+					else 
+						loss = LabelMSE(output, batch.target, numOutputs, 1.f, 15.f);
 					totalLoss += loss.item<float>();
 					++forwardRuns; // count runs to normalize the training error
 
@@ -300,11 +325,17 @@ namespace Learning {
 			}
 			std::cout << "epoch: " << epoch << " loss: " << loss << "\n";
 		}
+		bestNet->to(torch::kCPU);
 		torch::save(bestNet, _name + ".pt");
 
 	}
 
 	// ************************************************************************ //
+	ReinforcmentLoop::ReinforcmentLoop(const std::string& _netName, const std::string _logName)
+		: m_netName(_netName),
+		m_logName(_logName)
+	{}
+
 	void ReinforcmentLoop::Run()
 	{
 		std::vector<std::string> neuralNetworkNames;
@@ -319,11 +350,12 @@ namespace Learning {
 		for (int i = 0; i < numEpochs; ++i)
 		{
 			const std::string epoch = std::to_string(i);
-			const std::string path = "gamelogs_" + epoch;
-			const std::string netName = "net_" + epoch;
+			const std::string path = m_logName + epoch;
+			const std::string netName = m_netName + epoch;
 
 			// create data
 			spdlog::info("Generating data {}.", path);
+			auto start = std::chrono::high_resolution_clock::now();
 			fs::create_directory(path);
 			section.SetValue("LogPath", path);
 			section.SetValue("NetworkName0", neuralNetworkNames.back());
@@ -332,42 +364,74 @@ namespace Learning {
 			section.SetValue("ExploreRatio", explore);
 			section.SetValue("LogGames", 1);
 			game.Run();
+			auto end = std::chrono::high_resolution_clock::now();
+			spdlog::info("Data generation took {}s.", std::chrono::duration<float>(end - start).count());
 
 			// train new network
 			spdlog::info("Training network {}.", netName);
+			start = std::chrono::high_resolution_clock::now();
 			Trainer train;
 			train.Train(path, netName);
 			neuralNetworkNames.push_back(netName);
+			end = std::chrono::high_resolution_clock::now();
+			spdlog::info("Training took {}s.", std::chrono::duration<float>(end - start).count());
 		}
 	}
 
 	void ReinforcmentLoop::Evaluate()
 	{
-		Shoop game(1366, 768);
 		std::vector<std::string> neuralNetworkNames;
 
 		for (int i = 0; i < 8; ++i)
 			neuralNetworkNames.push_back("net_" + std::to_string(i));
+		g_resultsMatrix.reset(new ResultsMatrix(static_cast<int>(neuralNetworkNames.size()), 3));
 
-		auto& learningConf = game.Config().GetSection("learning");
-		learningConf.SetValue("LogGames", 0);
-		learningConf.SetValue("ExploreRatio", 0.0);
-
-		auto& gameplayConf = game.Config().GetSection("gameplay");
-		gameplayConf.SetValue("numWinsRequired", std::numeric_limits<int>::max());
-		gameplayConf.SetValue("maxNumGames", 512);
-
-		for(size_t i = 0; i < neuralNetworkNames.size(); ++i)
+		std::vector<std::pair<size_t, size_t>> pairings;
+		for (size_t i = 0; i < neuralNetworkNames.size(); ++i)
 			for (size_t j = i; j < neuralNetworkNames.size(); ++j)
 			{
-				spdlog::info("{} vs {}", neuralNetworkNames[i], neuralNetworkNames[j]);
+				pairings.emplace_back(i, j);
+			}
+
+		auto evaluateGames = [&](size_t begin, size_t end) {
+			Shoop game(1366, 768);
+
+			auto& learningConf = game.Config().GetSection("learning");
+			learningConf.SetValue("LogGames", 0);
+			learningConf.SetValue("ExploreRatio", 0.0);
+
+			auto& gameplayConf = game.Config().GetSection("gameplay");
+			gameplayConf.SetValue("numWinsRequired", std::numeric_limits<int>::max());
+			gameplayConf.SetValue("maxNumGames", 512);
+
+			for (size_t k = begin; k < end; ++k)
+			{
+				const auto [i, j] = pairings[k];
+			//	spdlog::info("{} vs {}", neuralNetworkNames[i], neuralNetworkNames[j]);
 				learningConf.SetValue("NetworkName0", neuralNetworkNames[i]);
 				learningConf.SetValue("NetworkName1", neuralNetworkNames[j]);
+				learningConf.SetValue("PairingIdx", g_resultsMatrix->GetPairingIdx(i, j));
 				game.Run();
 				learningConf.SetValue("NetworkName0", neuralNetworkNames[j]);
 				learningConf.SetValue("NetworkName1", neuralNetworkNames[i]);
+				learningConf.SetValue("PairingIdx", g_resultsMatrix->GetPairingIdx(j, i));
 				game.Run();
 			}
+		};
+
+		std::vector<std::thread> threads;
+		const size_t numThreads = std::thread::hardware_concurrency();
+		const size_t pairingsPerThread = pairings.size() / numThreads;
+		for(size_t i = 0; i < numThreads-1; ++i)
+			threads.emplace_back(evaluateGames, i * pairingsPerThread, (i+1)*pairingsPerThread);
+		evaluateGames((numThreads - 1) * pairingsPerThread, pairings.size());
+
+		for (auto& thread : threads)
+			thread.join();
+
+		g_resultsMatrix->Print();
+		std::cout << "----------------------------------------------\n";
+		g_resultsMatrix->Print(true);
 	}
 
 } // namespace Learning
@@ -405,7 +469,7 @@ namespace Game {
 		torch::Tensor x;
 		try {
 			x = torch::concat({ ToTensor(_self), ToTensor(_oth) });
-			x = torch::softmax(m_neuralNet->forward(x), 0);
+			x = m_neuralNet->forward(x);
 		}
 		catch (c10::Error err)
 		{

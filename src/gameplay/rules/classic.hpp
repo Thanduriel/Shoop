@@ -17,7 +17,7 @@ namespace Game {
 		void Reset() override;
 		std::string GetScore() override;
 
-		const std::vector<int> GetResults() const { return m_numWins; }
+		std::vector<int> GetResults() const;
 	private:
 		void ResetMap();
 
