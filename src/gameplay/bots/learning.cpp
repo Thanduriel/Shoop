@@ -362,7 +362,6 @@ namespace Learning {
 			section.SetValue("NetworkName1", neuralNetworkNames.back());
 			const float explore = i == 0 ? 1.f : (1.f - (i / static_cast<float>(numEpochs))) * 0.5f;
 			section.SetValue("ExploreRatio", explore);
-			section.SetValue("LogGames", 1);
 			game.Run();
 			auto end = std::chrono::high_resolution_clock::now();
 			spdlog::info("Data generation took {}s.", std::chrono::duration<float>(end - start).count());
@@ -378,17 +377,28 @@ namespace Learning {
 		}
 	}
 
+	struct RLBot 
+	{
+		std::string neuralNetworkName;
+		DoopAI::Mode mode;
+	};
+
 	void ReinforcmentLoop::Evaluate()
 	{
-		std::vector<std::string> neuralNetworkNames;
+		std::vector<RLBot> bots;
 
-		for (int i = 0; i < 8; ++i)
-			neuralNetworkNames.push_back("net_" + std::to_string(i));
-		g_resultsMatrix.reset(new ResultsMatrix(static_cast<int>(neuralNetworkNames.size()), 3));
+	//	for (int i = 0; i < 8; ++i)
+	//		bots.push_back({ "net_" + std::to_string(i), DoopAI::Mode::SAMPLE_FILTERED });
+		bots.push_back({ "net_" + std::to_string(6), DoopAI::Mode::SAMPLE });
+		bots.push_back({ "net_" + std::to_string(6), DoopAI::Mode::SAMPLE_FILTERED });
+		bots.push_back({ "net_" + std::to_string(6), DoopAI::Mode::MAX });
+		bots.push_back({ "net_" + std::to_string(3), DoopAI::Mode::SAMPLE });
+		bots.push_back({ "net_" + std::to_string(4), DoopAI::Mode::SAMPLE });
+		g_resultsMatrix.reset(new ResultsMatrix(static_cast<int>(bots.size()), 3));
 
 		std::vector<std::pair<size_t, size_t>> pairings;
-		for (size_t i = 0; i < neuralNetworkNames.size(); ++i)
-			for (size_t j = i; j < neuralNetworkNames.size(); ++j)
+		for (size_t i = 0; i < bots.size(); ++i)
+			for (size_t j = i; j < bots.size(); ++j)
 			{
 				pairings.emplace_back(i, j);
 			}
@@ -402,18 +412,23 @@ namespace Learning {
 
 			auto& gameplayConf = game.Config().GetSection("gameplay");
 			gameplayConf.SetValue("numWinsRequired", std::numeric_limits<int>::max());
-			gameplayConf.SetValue("maxNumGames", 512);
+			gameplayConf.SetValue("maxNumGames", 1024);
 
 			for (size_t k = begin; k < end; ++k)
 			{
 				const auto [i, j] = pairings[k];
 			//	spdlog::info("{} vs {}", neuralNetworkNames[i], neuralNetworkNames[j]);
-				learningConf.SetValue("NetworkName0", neuralNetworkNames[i]);
-				learningConf.SetValue("NetworkName1", neuralNetworkNames[j]);
+				learningConf.SetValue("NetworkName0", bots[i].neuralNetworkName);
+				learningConf.SetValue("SelectMode0", static_cast<int>(bots[i].mode));
+				learningConf.SetValue("NetworkName1", bots[j].neuralNetworkName);
+				learningConf.SetValue("SelectMode1", static_cast<int>(bots[j].mode));
 				learningConf.SetValue("PairingIdx", g_resultsMatrix->GetPairingIdx(i, j));
 				game.Run();
-				learningConf.SetValue("NetworkName0", neuralNetworkNames[j]);
-				learningConf.SetValue("NetworkName1", neuralNetworkNames[i]);
+				learningConf.SetValue("NetworkName0", bots[j].neuralNetworkName);
+				learningConf.SetValue("SelectMode0", static_cast<int>(bots[j].mode));
+				learningConf.SetValue("NetworkName1", bots[i].neuralNetworkName);
+				learningConf.SetValue("SelectMode1", static_cast<int>(bots[i].mode));
+				learningConf.SetValue("PairingIdx", g_resultsMatrix->GetPairingIdx(i, j));
 				learningConf.SetValue("PairingIdx", g_resultsMatrix->GetPairingIdx(j, i));
 				game.Run();
 			}
@@ -470,36 +485,51 @@ namespace Game {
 		try {
 			x = torch::concat({ ToTensor(_self), ToTensor(_oth) });
 			x = m_neuralNet->forward(x);
+
+			auto SelectRandom = [this](const torch::Tensor& t)
+			{
+				const float select = m_random.Uniform();
+				float probSum = 0.f;
+				for (int64_t i = 0; i < t.numel(); ++i)
+				{
+					probSum += t[i].item<float>();
+					if (select < probSum)
+					{
+						return i;
+					}
+				}
+
+				return t.numel() - 1;
+			};
+
+			// for SAMPLE it may be possible to skip initialization if select ~1.f
+			int64_t idx = x.numel() - 1;
+			switch (m_mode)
+			{
+			case Mode::MAX:
+				idx = torch::argmax(x).item<int64_t>();
+				break;
+			case Mode::SAMPLE_FILTERED:
+			{
+				x = torch::softmax(x, 0);
+				torch::Tensor sortedIdx = torch::argsort(x, 0).slice(0, 0, x.numel() / 2);
+				x.index_put_({ sortedIdx }, torch::zeros(sortedIdx.sizes(), x.options()));
+				x /= x.norm();
+				idx = SelectRandom(x);
+			}
+			case Mode::SAMPLE:
+				x = torch::softmax(x, 0);
+				idx = SelectRandom(x);
+				break;
+			}
+			_inp.state = m_inputs[idx];
+
 		}
 		catch (c10::Error err)
 		{
 			std::cout << err.msg() << "\n";
 			std::abort();
 		}
-		
-		// for SAMPLE it may be possible to skip initialization if select ~1.f
-		int64_t idx = x.numel() - 1;
-		switch (m_mode)
-		{
-		case Mode::MAX:
-			idx = torch::argmax(x).item<int64_t>();
-			break;
-		case Mode::SAMPLE:
-			x = torch::softmax(x, 0);
-			const float select = m_random.Uniform();
-			float probSum = 0.f;
-			for (int64_t i = 0; i < x.numel(); ++i) 
-			{
-				probSum += x[i].item<float>();
-				if (select < probSum)
-				{
-					idx = i;
-					break;
-				}
-			}
-			break;
-		}
-		_inp.state = m_inputs[idx];
 		
 	}
 }

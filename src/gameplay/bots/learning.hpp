@@ -83,7 +83,8 @@ namespace Game {
 	public:
 		enum struct Mode {
 			MAX,
-			SAMPLE
+			SAMPLE,
+			SAMPLE_FILTERED
 		};
 		// @_axisIntervals Number of discrete intervals for the input axis.
 		// Should be odd so that 0 is included.

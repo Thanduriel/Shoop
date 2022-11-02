@@ -67,10 +67,12 @@ namespace Game {
 			if (isAI)
 			{
 				const std::string netNameKey = "NetworkName" + controllerId;
+				const std::string modeKey = "SelectMode" + controllerId;
 				const bool logGames = _config.GetSection("general").GetValue<int>("LogGames");
 				return std::unique_ptr<PlayerControllerComponent>(
 					new AIControllerComponent(sheep, *m_rules, 
-						DoopAI(learnSettings.GetValue<std::string>(netNameKey), DoopAI::Mode::SAMPLE, learnSettings.GetValue<float>("ExploreRatio")),
+						DoopAI(learnSettings.GetValue<std::string>(netNameKey), 
+							static_cast<DoopAI::Mode>(learnSettings.GetValue<int>(modeKey)), learnSettings.GetValue<float>("ExploreRatio")),
 						4.f, controllerId,
 						logGames,
 						logGames ? learnSettings.GetValue<std::string>("LogPath") : ""));
@@ -82,7 +84,7 @@ namespace Game {
 			}
 		};
 
-		m_controller1 = makeController(*sheep1, *m_input1, true);
+		m_controller1 = makeController(*sheep1, *m_input1, false);
 		m_controller2 = makeController(*sheep2, *m_input2, true);
 		m_controllers.push_back(m_controller1.get());
 		m_controllers.push_back(m_controller2.get());
