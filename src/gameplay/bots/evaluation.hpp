@@ -8,7 +8,7 @@ public:
 	using Index = int;
 	using FlatIndex = size_t;
 
-	ResultsMatrix(int _numPlayers, int _numResultStates = 3);
+	ResultsMatrix(int _numPlayers, int _numResultStates);
 
 	FlatIndex GetPairingIdx(Index _player0, Index _player1) const;
 	//int& Get(Index _player0, Index _player1, Index _result);

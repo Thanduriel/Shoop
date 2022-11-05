@@ -25,18 +25,23 @@ namespace Game {
 			if (std::any_of(m_players.begin(), m_players.end(), Rules::IsDead)
 				|| m_waitTimeLeft <= 0.f)
 			{
-				++m_numWins.back();
+				++m_numWins[2];
 				// register win
 				int winner = -1;
-				for (size_t i = 0; i < m_players.size(); ++i)
+				if (m_waitTimeLeft > 0.f)
 				{
-					const Actor::Handle& player = m_players[i];
-					if (!Rules::IsDead(player)) 
+					for (size_t i = 0; i < m_players.size(); ++i)
 					{
-						++m_numWins[i];
-						winner = static_cast<int>(i);
+						const Actor::Handle& player = m_players[i];
+						if (!Rules::IsDead(player))
+						{
+							++m_numWins[i];
+							winner = static_cast<int>(i);
+						}
 					}
 				}
+				else
+					++m_numWins[3];
 
 				m_state = State::Wait;
 				m_waitTimeLeft = m_waitTime;
@@ -64,13 +69,13 @@ namespace Game {
 				return true;
 		}
 
-		return m_numWins.back() >= m_maxNumGames;
+		return m_numWins[2] >= m_maxNumGames;
 	}
 
 	void Classic::Start()
 	{
 		m_players.resize(m_controllers.size());
-		m_numWins.resize(m_controllers.size() + 1, 0);
+		m_numWins.resize(m_controllers.size() + 2, 0);
 		for (ControllerComponent* controller : m_controllers)
 			controller->GetActor().Destroy();
 		ResetMap();
@@ -90,7 +95,7 @@ namespace Game {
 
 	std::vector<int> Classic::GetResults() const
 	{
-		auto res = m_numWins; 
+		std::vector<int> res = m_numWins;
 		res[2] = res[2] - res[1] - res[0]; 
 		return res;
 	}

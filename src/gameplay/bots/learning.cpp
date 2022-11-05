@@ -360,6 +360,16 @@ namespace Learning {
 			section.SetValue("LogPath", path);
 			section.SetValue("NetworkName0", neuralNetworkNames.back());
 			section.SetValue("NetworkName1", neuralNetworkNames.back());
+			if (i == 0)
+			{
+				section.SetValue("SelectMode0", static_cast<int>(DoopAI::Mode::SAMPLE));
+				section.SetValue("SelectMode1", static_cast<int>(DoopAI::Mode::SAMPLE));
+			}
+			else
+			{
+				section.SetValue("SelectMode0", static_cast<int>(DoopAI::Mode::SAMPLE_FILTERED));
+				section.SetValue("SelectMode1", static_cast<int>(DoopAI::Mode::SAMPLE_FILTERED));
+			}
 			const float explore = i == 0 ? 1.f : (1.f - (i / static_cast<float>(numEpochs))) * 0.5f;
 			section.SetValue("ExploreRatio", explore);
 			game.Run();
@@ -387,14 +397,14 @@ namespace Learning {
 	{
 		std::vector<RLBot> bots;
 
-	//	for (int i = 0; i < 8; ++i)
-	//		bots.push_back({ "net_" + std::to_string(i), DoopAI::Mode::SAMPLE_FILTERED });
-		bots.push_back({ "net_" + std::to_string(6), DoopAI::Mode::SAMPLE });
+		for (int i = 0; i < 8; ++i)
+			bots.push_back({ "muchDataNet_" + std::to_string(i), DoopAI::Mode::SAMPLE_FILTERED });
+	/*	bots.push_back({ "net_" + std::to_string(6), DoopAI::Mode::SAMPLE });
 		bots.push_back({ "net_" + std::to_string(6), DoopAI::Mode::SAMPLE_FILTERED });
 		bots.push_back({ "net_" + std::to_string(6), DoopAI::Mode::MAX });
 		bots.push_back({ "net_" + std::to_string(3), DoopAI::Mode::SAMPLE });
-		bots.push_back({ "net_" + std::to_string(4), DoopAI::Mode::SAMPLE });
-		g_resultsMatrix.reset(new ResultsMatrix(static_cast<int>(bots.size()), 3));
+		bots.push_back({ "net_" + std::to_string(4), DoopAI::Mode::SAMPLE });*/
+		g_resultsMatrix.reset(new ResultsMatrix(static_cast<int>(bots.size()), 4));
 
 		std::vector<std::pair<size_t, size_t>> pairings;
 		for (size_t i = 0; i < bots.size(); ++i)
@@ -412,7 +422,7 @@ namespace Learning {
 
 			auto& gameplayConf = game.Config().GetSection("gameplay");
 			gameplayConf.SetValue("numWinsRequired", std::numeric_limits<int>::max());
-			gameplayConf.SetValue("maxNumGames", 1024);
+			gameplayConf.SetValue("maxNumGames", 128);
 
 			for (size_t k = begin; k < end; ++k)
 			{
@@ -516,6 +526,7 @@ namespace Game {
 				x.index_put_({ sortedIdx }, torch::zeros(sortedIdx.sizes(), x.options()));
 				x /= x.norm();
 				idx = SelectRandom(x);
+				break;
 			}
 			case Mode::SAMPLE:
 				x = torch::softmax(x, 0);
