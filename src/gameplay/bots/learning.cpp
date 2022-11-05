@@ -445,7 +445,7 @@ namespace Learning {
 		};
 
 		std::vector<std::thread> threads;
-		const size_t numThreads = std::thread::hardware_concurrency();
+		const size_t numThreads = std::thread::hardware_concurrency() / 2;
 		const size_t pairingsPerThread = pairings.size() / numThreads;
 		for(size_t i = 0; i < numThreads-1; ++i)
 			threads.emplace_back(evaluateGames, i * pairingsPerThread, (i+1)*pairingsPerThread);
@@ -512,8 +512,7 @@ namespace Game {
 				return t.numel() - 1;
 			};
 
-			// for SAMPLE it may be possible to skip initialization if select ~1.f
-			int64_t idx = x.numel() - 1;
+			int64_t idx = 0;
 			switch (m_mode)
 			{
 			case Mode::MAX:
@@ -524,7 +523,7 @@ namespace Game {
 				x = torch::softmax(x, 0);
 				torch::Tensor sortedIdx = torch::argsort(x, 0).slice(0, 0, x.numel() / 2);
 				x.index_put_({ sortedIdx }, torch::zeros(sortedIdx.sizes(), x.options()));
-				x /= x.norm();
+				x /= x.sum();
 				idx = SelectRandom(x);
 				break;
 			}
