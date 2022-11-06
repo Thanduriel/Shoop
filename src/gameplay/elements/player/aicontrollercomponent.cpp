@@ -112,7 +112,7 @@ namespace Game {
 
 		m_log.outcome = _outcome;
 		const std::string outcomeStr = std::to_string(static_cast<int>(_outcome));
-		m_log.Save(m_logPath + "/" + m_name + ".dat");
+		m_log.Save(m_logPath + m_name + ".dat");
 
 		++m_totalGameCount;
 		m_log.states.clear();

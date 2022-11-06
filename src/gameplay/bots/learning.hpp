@@ -58,20 +58,8 @@ namespace Learning {
 	class Trainer
 	{
 	public:
-		void Train(const std::string& _path, const std::string& _name);
-	};
-
-	class ReinforcmentLoop
-	{
-	public:
-		ReinforcmentLoop(const std::string& _netName = "net_", const std::string _logName = "gamelogs_");
-
-		void Run();
-		void Evaluate();
-
-	private:
-		std::string m_netName;
-		std::string m_logName;
+		using CustomTestFn = std::function<float(const MLP&)>;
+		void Train(const std::string& _path, const std::string& _name, CustomTestFn _testFn);
 	};
 
 } // namespace Learning
@@ -84,7 +72,8 @@ namespace Game {
 		enum struct Mode {
 			MAX,
 			SAMPLE,
-			SAMPLE_FILTERED
+			SAMPLE_FILTERED,
+			RANDOM
 		};
 		// @_axisIntervals Number of discrete intervals for the input axis.
 		// Should be odd so that 0 is included.
@@ -99,6 +88,28 @@ namespace Game {
 		float m_exploreRatio;
 		Generators::RandomGenerator m_random;
 	};
-}
+} // namespace Game
+
+namespace Learning {
+	class ReinforcmentLoop
+	{
+	public:
+		ReinforcmentLoop(const std::string& _netName = "net_", const std::string _logName = "gamelogs_");
+
+		void Run(int _numGamesPerEpoch);
+		void Evaluate();
+
+		struct RLBot
+		{
+			std::string neuralNetworkName;
+			Game::DoopAI::Mode mode;
+		};
+		void Evaluate(const std::vector<RLBot>& _bots, int _numGames, size_t _numThreads);
+	private:
+		std::string m_netName;
+		std::string m_logName;
+	};
+
+} // namespace Game
 
 #endif

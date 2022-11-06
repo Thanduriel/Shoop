@@ -32,7 +32,8 @@ namespace Game {
 		: m_rules(new Classic(m_controllers, _config.GetSection("gameplay").GetValue<int>("numWinsRequired"), 
 			3.f, 30.f,
 			_config.GetSection("gameplay").GetValue<int>("maxNumGames"))),
-		m_autoReset(_config.GetSection("general").GetValue<bool>("AutoReset"))
+		m_autoReset(_config.GetSection("general").GetValue<bool>("AutoReset")),
+		m_pairingIdx(-1)
 	{
 		spdlog::info("Creating main state");
 
@@ -58,7 +59,9 @@ namespace Game {
 		const bool autoCharge = gamplaySettings.GetValue<int>("autoChargeJump");
 
 		const Utils::ConfigSection& learnSettings = _config.GetSection("learning");
-		m_pairingIdx = learnSettings.GetValue<ResultsMatrix::FlatIndex>("PairingIdx");
+
+		if (g_resultsMatrix)
+			m_pairingIdx = learnSettings.GetValue<ResultsMatrix::FlatIndex>("PairingIdx");
 		int controllerCount = 0;
 		auto makeController = [&](Sheep& sheep, Input::InputInterface& inp, bool isAI)
 		{
@@ -73,7 +76,8 @@ namespace Game {
 					new AIControllerComponent(sheep, *m_rules, 
 						DoopAI(learnSettings.GetValue<std::string>(netNameKey), 
 							static_cast<DoopAI::Mode>(learnSettings.GetValue<int>(modeKey)), learnSettings.GetValue<float>("ExploreRatio")),
-						4.f, controllerId,
+						4.f, 
+						controllerId,
 						logGames,
 						logGames ? learnSettings.GetValue<std::string>("LogPath") : ""));
 			}
@@ -84,7 +88,7 @@ namespace Game {
 			}
 		};
 
-		m_controller1 = makeController(*sheep1, *m_input1, false);
+		m_controller1 = makeController(*sheep1, *m_input1, true);
 		m_controller2 = makeController(*sheep2, *m_input2, true);
 		m_controllers.push_back(m_controller1.get());
 		m_controllers.push_back(m_controller2.get());
@@ -132,10 +136,12 @@ namespace Game {
 				{
 					auto results = rules->GetResults();
 					spdlog::info("Finished match with score {}/{} draws:{}.", results[0], results[1], results[2]);
-					int* resPtr = g_resultsMatrix->Get(m_pairingIdx);
-					// add so that the mirror match is accumulated
-					for (size_t i = 0; i < results.size(); ++i) 
-						resPtr[i] += results[i];
+					if (g_resultsMatrix) {
+						int* resPtr = g_resultsMatrix->Get(m_pairingIdx);
+						// add so that the mirror match is accumulated
+						for (size_t i = 0; i < results.size(); ++i)
+							resPtr[i] += results[i];
+					}
 				}
 			}
 		}

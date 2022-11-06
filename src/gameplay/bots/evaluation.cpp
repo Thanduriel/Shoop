@@ -13,6 +13,11 @@ ResultsMatrix::FlatIndex ResultsMatrix::GetPairingIdx(Index _player0, Index _pla
 	return static_cast<FlatIndex>(_player0 * m_numPlayers + _player1);
 }
 
+int ResultsMatrix::Get(Index _player0, Index _player1, Index _result) const
+{
+	return m_elements[GetPairingIdx(_player0, _player1) * m_numResultStates + _result];
+}
+
 int* ResultsMatrix::Get(FlatIndex _pairingIdx)
 {
 	return &m_elements[_pairingIdx * m_numResultStates];
@@ -27,7 +32,7 @@ void ResultsMatrix::Print(bool _symmetric) const
 {
 	int maxDigits = 0;
 	for (size_t i = 0; i < m_elements.size(); ++i)
-		maxDigits = std::max(static_cast<int>(1+std::log10(m_elements.size())), maxDigits);
+		maxDigits = std::max(static_cast<int>(1+std::log10(m_elements[i])), maxDigits);
 	// +1 to always have a gap
 	++maxDigits;
 

@@ -4,7 +4,7 @@
 
 namespace Graphics {
 
-	sf::RenderWindow* Device::m_window;
+	sf::RenderWindow* Device::m_window = nullptr;
 
 	const Utils::ConfigSection::Initializer<int, 4> VideoSettings(
 		{ {
@@ -18,10 +18,21 @@ namespace Graphics {
 
 	void Device::Init(int _sizeX, int _sizeY, bool _fullScreen)
 	{
-		spdlog::info("Initializing graphics device");
+		static std::mutex mutex;
 
-		m_window = new sf::RenderWindow();
-		Resize(_sizeX, _sizeY, _fullScreen);
+		// even with multiple game instances just one window is needed
+		std::scoped_lock<std::mutex> lock(mutex);
+		if (!m_window)
+		{
+			spdlog::info("Initializing graphics device");
+
+			m_window = new sf::RenderWindow();
+			Resize(_sizeX, _sizeY, _fullScreen);
+			m_window->setKeyRepeatEnabled(false);
+
+			const sf::Image& icon = Resources::Load<sf::Image>("icon");
+			m_window->setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
+		}
 	}
 
 	void Device::Close()

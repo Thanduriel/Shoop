@@ -18,9 +18,9 @@ int main()
 //	_CrtSetBreakAlloc(168);
 #endif
 #endif
-	Learning::ReinforcmentLoop loop("muchDataNet_", "gamelogsLarge_");
-//	loop.Run();
-	loop.Evaluate();
+	Learning::ReinforcmentLoop loop("newSampleNet_", "gamelogsSample_");
+	loop.Run(1024);
+//	loop.Evaluate();
 	return 0;
 
 	Shoop shoop(1366, 768);

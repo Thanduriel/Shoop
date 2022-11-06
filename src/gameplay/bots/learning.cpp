@@ -3,6 +3,7 @@
 #include "evaluation.hpp"
 #include <filesystem>
 #include <thread>
+#include <future>
 
 namespace fs = std::filesystem;
 
@@ -252,7 +253,7 @@ namespace Learning {
 	constexpr int64_t numEpochs = 512;
 	constexpr bool useCrossEntropy = true;
 
-	void Trainer::Train(const std::string& _path, const std::string& _name)
+	void Trainer::Train(const std::string& _path, const std::string& _name, CustomTestFn _testFn)
 	{
 		namespace dat = torch::data;
 
@@ -285,9 +286,27 @@ namespace Learning {
 		auto optimizer = torch::optim::AdamW(net->parameters(), torch::optim::AdamWOptions(lr)
 			.weight_decay(wd));
 
+		std::future<float> testScore;
+		int64_t testEpoch = 0;
+
 		for (int64_t epoch = 1; epoch <= numEpochs; ++epoch)
 		{
 			net->train();
+
+			// report async test results
+			if (testScore.valid() && testScore.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+			{
+				spdlog::info("test score: {}, epoch: {}", testScore.get(), testEpoch);
+			}
+			// start next test task
+			if (!testScore.valid())
+			{
+				auto testNet = clone(net);
+				testNet->to(torch::kCPU);
+				testScore = std::async(std::launch::async, _testFn, testNet);
+				testEpoch = epoch - 1;
+			}
+
 			for (dat::Example<>& batch : *data_loader)
 			{
 				auto closure = [&]()
@@ -312,18 +331,18 @@ namespace Learning {
 				}
 				catch (c10::Error err)
 				{
-					std::cout << err.msg() << "\n";
+					spdlog::error("{}", err.msg());
 					std::abort();
 				}
 			}
-
+			
 			const float loss = totalLoss / forwardRuns;
 			if (minLoss < loss)
 			{
 				minLoss = loss;
 				bestNet = clone(net);
 			}
-			std::cout << "epoch: " << epoch << " loss: " << loss << "\n";
+			spdlog::info("epoch: {}, loss: {}", epoch, loss);
 		}
 		bestNet->to(torch::kCPU);
 		torch::save(bestNet, _name + ".pt");
@@ -336,15 +355,27 @@ namespace Learning {
 		m_logName(_logName)
 	{}
 
-	void ReinforcmentLoop::Run()
+	void ReinforcmentLoop::Run(int _numGamesPerEpoch)
 	{
 		std::vector<std::string> neuralNetworkNames;
+		// start with newly initialized network
 		neuralNetworkNames.push_back("");
 
-		Shoop game(1366, 768);
-		auto& section = game.Config().GetSection("learning");
-		game.Config().GetSection("general").SetValue("LogGames", 1);
 //		auto& gameplayConf = game.Config().GetSection("gameplay");
+
+		auto testFn = [this](const MLP& _net)
+		{
+			constexpr const char* testNetName = "__testNet.pt";
+			torch::save(_net, testNetName);
+			std::vector<RLBot> bots;
+			bots.push_back({ testNetName, DoopAI::Mode::RANDOM });
+			bots.push_back({ "", DoopAI::Mode::RANDOM });
+			Evaluate(bots, 512, std::thread::hardware_concurrency() / 2);
+			g_resultsMatrix->Print();
+			const int winsP0 = g_resultsMatrix->Get(0, 1, 0) + g_resultsMatrix->Get(1, 0, 1);
+			const int winsP1 = g_resultsMatrix->Get(0, 1, 1) + g_resultsMatrix->Get(1, 0, 0);
+			return static_cast<float>(winsP0) / (winsP0 + winsP1);
+		};
 
 		constexpr int numEpochs = 8;
 		for (int i = 0; i < numEpochs; ++i)
@@ -357,22 +388,41 @@ namespace Learning {
 			spdlog::info("Generating data {}.", path);
 			auto start = std::chrono::high_resolution_clock::now();
 			fs::create_directory(path);
-			section.SetValue("LogPath", path);
-			section.SetValue("NetworkName0", neuralNetworkNames.back());
-			section.SetValue("NetworkName1", neuralNetworkNames.back());
-			if (i == 0)
+
+			auto generateData = [&](size_t threadNum, int numGames)
 			{
-				section.SetValue("SelectMode0", static_cast<int>(DoopAI::Mode::SAMPLE));
-				section.SetValue("SelectMode1", static_cast<int>(DoopAI::Mode::SAMPLE));
-			}
-			else
-			{
-				section.SetValue("SelectMode0", static_cast<int>(DoopAI::Mode::SAMPLE_FILTERED));
-				section.SetValue("SelectMode1", static_cast<int>(DoopAI::Mode::SAMPLE_FILTERED));
-			}
-			const float explore = i == 0 ? 1.f : (1.f - (i / static_cast<float>(numEpochs))) * 0.5f;
-			section.SetValue("ExploreRatio", explore);
-			game.Run();
+				Shoop game(1366, 768);
+				auto& section = game.Config().GetSection("learning");
+				game.Config().GetSection("general").SetValue("LogGames", 1);
+				game.Config().GetSection("gameplay").SetValue("numWinsRequired", numGames);
+				game.Config().GetSection("gameplay").SetValue("maxNumGames", numGames);
+				section.SetValue("LogPath", path + "/" + std::to_string(threadNum) + "_");
+				section.SetValue("NetworkName0", neuralNetworkNames.back());
+				section.SetValue("NetworkName1", neuralNetworkNames.back());
+				if (i == 0)
+				{
+					section.SetValue("SelectMode0", static_cast<int>(DoopAI::Mode::RANDOM));
+					section.SetValue("SelectMode1", static_cast<int>(DoopAI::Mode::RANDOM));
+				}
+				else
+				{
+					section.SetValue("SelectMode0", static_cast<int>(DoopAI::Mode::SAMPLE_FILTERED));
+					section.SetValue("SelectMode1", static_cast<int>(DoopAI::Mode::SAMPLE_FILTERED));
+				}
+				const float explore = 1.f - (i / static_cast<float>(numEpochs)) * 0.5f;
+				section.SetValue("ExploreRatio", explore);
+				game.Run();
+			};
+
+			const size_t numThreads = std::max(1u, std::thread::hardware_concurrency() / 2);
+			const int gamesPerThread = _numGamesPerEpoch / static_cast<int>(numThreads);
+			std::vector<std::thread> threads;
+			for (size_t t = 0; t < numThreads - 1; ++t)
+				threads.emplace_back(generateData, t, gamesPerThread);
+			generateData(numThreads - 1, gamesPerThread);
+			for (auto& t : threads)
+				t.join();
+
 			auto end = std::chrono::high_resolution_clock::now();
 			spdlog::info("Data generation took {}s.", std::chrono::duration<float>(end - start).count());
 
@@ -380,35 +430,40 @@ namespace Learning {
 			spdlog::info("Training network {}.", netName);
 			start = std::chrono::high_resolution_clock::now();
 			Trainer train;
-			train.Train(path, netName);
+			train.Train(path, netName, testFn);
 			neuralNetworkNames.push_back(netName);
 			end = std::chrono::high_resolution_clock::now();
 			spdlog::info("Training took {}s.", std::chrono::duration<float>(end - start).count());
 		}
 	}
 
-	struct RLBot 
-	{
-		std::string neuralNetworkName;
-		DoopAI::Mode mode;
-	};
-
 	void ReinforcmentLoop::Evaluate()
 	{
 		std::vector<RLBot> bots;
 
 		for (int i = 0; i < 8; ++i)
-			bots.push_back({ "muchDataNet_" + std::to_string(i), DoopAI::Mode::SAMPLE_FILTERED });
-	/*	bots.push_back({ "net_" + std::to_string(6), DoopAI::Mode::SAMPLE });
-		bots.push_back({ "net_" + std::to_string(6), DoopAI::Mode::SAMPLE_FILTERED });
-		bots.push_back({ "net_" + std::to_string(6), DoopAI::Mode::MAX });
-		bots.push_back({ "net_" + std::to_string(3), DoopAI::Mode::SAMPLE });
-		bots.push_back({ "net_" + std::to_string(4), DoopAI::Mode::SAMPLE });*/
-		g_resultsMatrix.reset(new ResultsMatrix(static_cast<int>(bots.size()), 4));
+			bots.push_back({ "muchDataNet_" + std::to_string(i), DoopAI::Mode::SAMPLE });
+		/*	bots.push_back({ "net_" + std::to_string(6), DoopAI::Mode::SAMPLE });
+			bots.push_back({ "net_" + std::to_string(6), DoopAI::Mode::SAMPLE_FILTERED });
+			bots.push_back({ "net_" + std::to_string(6), DoopAI::Mode::MAX });
+			bots.push_back({ "net_" + std::to_string(3), DoopAI::Mode::SAMPLE });
+			bots.push_back({ "net_" + std::to_string(4), DoopAI::Mode::SAMPLE });*/
+
+		Evaluate(bots, 1024, std::thread::hardware_concurrency() / 2);
+
+		g_resultsMatrix->Print();
+		std::cout << "----------------------------------------------\n";
+		g_resultsMatrix->Print(true);
+	}
+
+	void ReinforcmentLoop::Evaluate(const std::vector<RLBot>& _bots, int _numGames, size_t _numThreads)
+	{
+		
+		g_resultsMatrix.reset(new ResultsMatrix(static_cast<int>(_bots.size()), 4));
 
 		std::vector<std::pair<size_t, size_t>> pairings;
-		for (size_t i = 0; i < bots.size(); ++i)
-			for (size_t j = i; j < bots.size(); ++j)
+		for (size_t i = 0; i < _bots.size(); ++i)
+			for (size_t j = 0; j < _bots.size(); ++j)
 			{
 				pairings.emplace_back(i, j);
 			}
@@ -422,41 +477,28 @@ namespace Learning {
 
 			auto& gameplayConf = game.Config().GetSection("gameplay");
 			gameplayConf.SetValue("numWinsRequired", std::numeric_limits<int>::max());
-			gameplayConf.SetValue("maxNumGames", 128);
+			gameplayConf.SetValue("maxNumGames", _numGames);
 
 			for (size_t k = begin; k < end; ++k)
 			{
 				const auto [i, j] = pairings[k];
-			//	spdlog::info("{} vs {}", neuralNetworkNames[i], neuralNetworkNames[j]);
-				learningConf.SetValue("NetworkName0", bots[i].neuralNetworkName);
-				learningConf.SetValue("SelectMode0", static_cast<int>(bots[i].mode));
-				learningConf.SetValue("NetworkName1", bots[j].neuralNetworkName);
-				learningConf.SetValue("SelectMode1", static_cast<int>(bots[j].mode));
+				learningConf.SetValue("NetworkName0", _bots[i].neuralNetworkName);
+				learningConf.SetValue("SelectMode0", static_cast<int>(_bots[i].mode));
+				learningConf.SetValue("NetworkName1", _bots[j].neuralNetworkName);
+				learningConf.SetValue("SelectMode1", static_cast<int>(_bots[j].mode));
 				learningConf.SetValue("PairingIdx", g_resultsMatrix->GetPairingIdx(i, j));
-				game.Run();
-				learningConf.SetValue("NetworkName0", bots[j].neuralNetworkName);
-				learningConf.SetValue("SelectMode0", static_cast<int>(bots[j].mode));
-				learningConf.SetValue("NetworkName1", bots[i].neuralNetworkName);
-				learningConf.SetValue("SelectMode1", static_cast<int>(bots[i].mode));
-				learningConf.SetValue("PairingIdx", g_resultsMatrix->GetPairingIdx(i, j));
-				learningConf.SetValue("PairingIdx", g_resultsMatrix->GetPairingIdx(j, i));
 				game.Run();
 			}
 		};
 
 		std::vector<std::thread> threads;
-		const size_t numThreads = std::thread::hardware_concurrency() / 2;
-		const size_t pairingsPerThread = pairings.size() / numThreads;
-		for(size_t i = 0; i < numThreads-1; ++i)
+		const size_t pairingsPerThread = pairings.size() / _numThreads;
+		for(size_t i = 0; i < _numThreads-1; ++i)
 			threads.emplace_back(evaluateGames, i * pairingsPerThread, (i+1)*pairingsPerThread);
-		evaluateGames((numThreads - 1) * pairingsPerThread, pairings.size());
+		evaluateGames((_numThreads - 1) * pairingsPerThread, pairings.size());
 
 		for (auto& thread : threads)
 			thread.join();
-
-		g_resultsMatrix->Print();
-		std::cout << "----------------------------------------------\n";
-		g_resultsMatrix->Print(true);
 	}
 
 } // namespace Learning
@@ -468,13 +510,15 @@ namespace Game {
 
 	using namespace Learning;
 
+	std::atomic<int> g_rngSeed = 123456;
+
 	DoopAI::DoopAI(const std::string& _netName, Mode _mode, float _exploreRatio)
 		: m_inputs(MakeInputSpace(numIntervals)),
 		m_neuralNet(MLPOptions(GetSheepStateSize() * 2, hiddenSize, static_cast<int64_t>(m_inputs.size()))
 			.layers(numLayers)),
 		m_mode(_mode),
 		m_exploreRatio(_exploreRatio),
-		m_random(0x142bfa)
+		m_random(++g_rngSeed)
 	{
 		const std::string netName = _netName + ".pt";
 		if (fs::exists(netName))
@@ -484,7 +528,7 @@ namespace Game {
 	void DoopAI::operator()(const SheepState& _self, const SheepState& _oth, Input::VirtualInputs& _inp)
 	{
 		// explore: do a random move
-		if (m_exploreRatio > 0.f && m_random.Uniform() <= m_exploreRatio)
+		if ((m_exploreRatio > 0.f && m_random.Uniform() <= m_exploreRatio) || m_mode == Mode::RANDOM)
 		{
 			const int select = m_random.Uniform(0, static_cast<int32_t>(m_inputs.size()) - 1);
 			_inp.state = m_inputs[select];
@@ -530,6 +574,8 @@ namespace Game {
 			case Mode::SAMPLE:
 				x = torch::softmax(x, 0);
 				idx = SelectRandom(x);
+				break;
+			default:
 				break;
 			}
 			_inp.state = m_inputs[idx];
