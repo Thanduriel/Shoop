@@ -1,6 +1,7 @@
 #include "evaluation.hpp"
 #include <iostream>
 #include <spdlog/spdlog.h>
+#include <sstream>
 
 ResultsMatrix::ResultsMatrix(int _numPlayers, int _numResultStates)
 	: m_numPlayers(_numPlayers),
@@ -36,13 +37,14 @@ void ResultsMatrix::Print(bool _symmetric) const
 	// +1 to always have a gap
 	++maxDigits;
 
-	std::cout << "   | ";
+	std::stringstream bufStream;
+	bufStream << "   | ";
 	for (Index j = 0; j < m_numPlayers; ++j)
-		std::cout << fmt::format("{:^{}} | ", j, maxDigits * m_numResultStates);
-	std::cout << "\n";
+		bufStream << fmt::format("{:^{}} | ", j, maxDigits * m_numResultStates);
+	bufStream << "\n";
 	for (Index i = 0; i < m_numPlayers; ++i)
 	{
-		std::cout << fmt::format("{:2} | ", i);
+		bufStream << fmt::format("{:2} | ", i);
 		if (_symmetric)
 		{
 			for (Index j = 0; j < i; ++j)
@@ -50,16 +52,16 @@ void ResultsMatrix::Print(bool _symmetric) const
 				const int* ptr0 = Get(GetPairingIdx(i, j));
 				const int* ptr1 = Get(GetPairingIdx(j, i));
 
-				std::cout << fmt::format("{:{}}", ptr0[0] + ptr1[1], maxDigits);
-				std::cout << fmt::format("{:{}}", ptr0[1] + ptr1[0], maxDigits);
+				bufStream << fmt::format("{:{}}", ptr0[0] + ptr1[1], maxDigits);
+				bufStream << fmt::format("{:{}}", ptr0[1] + ptr1[0], maxDigits);
 				for (Index r = 2; r < m_numResultStates; ++r)
-					std::cout << fmt::format("{:{}}", ptr0[r] + ptr1[r], maxDigits);
-				std::cout << " | ";
+					bufStream << fmt::format("{:{}}", ptr0[r] + ptr1[r], maxDigits);
+				bufStream << " | ";
 			}
 			const int* ptr = Get(GetPairingIdx(i, i));
 			for (Index r = 0; r < m_numResultStates; ++r)
-				std::cout << fmt::format("{:{}}", ptr[r], maxDigits);
-			std::cout << " | ";
+				bufStream << fmt::format("{:{}}", ptr[r], maxDigits);
+			bufStream << " | ";
 		}
 		else
 		{
@@ -67,12 +69,13 @@ void ResultsMatrix::Print(bool _symmetric) const
 			{
 				const int* ptr = Get(GetPairingIdx(i, j));
 				for (Index r = 0; r < m_numResultStates; ++r)
-					std::cout << fmt::format("{:{}}", ptr[r], maxDigits);
-				std::cout << " | ";
+					bufStream << fmt::format("{:{}}", ptr[r], maxDigits);
+				bufStream << " | ";
 			}
 		}
-		std::cout << "\n";
+		bufStream << "\n";
 	}
+	std::cout << bufStream.str();
 }
 
 std::unique_ptr<ResultsMatrix> g_resultsMatrix;

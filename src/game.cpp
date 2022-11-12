@@ -33,7 +33,7 @@ Shoop::~Shoop()
 
 void Shoop::Run()
 {
-	spdlog::info("Running the game");
+	spdlog::debug("Running the game");
 
 	const bool skipStart = m_config.GetSection("general").GetValue<int>("SkipStartScreen");
 	if (skipStart)

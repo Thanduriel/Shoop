@@ -18,8 +18,13 @@ int main()
 //	_CrtSetBreakAlloc(168);
 #endif
 #endif
+#ifdef NDEBUG
+	spdlog::set_level(spdlog::level::info);
+#else
+	spdlog::set_level(spdlog::level::debug);
+#endif
 	Learning::ReinforcmentLoop loop("newSampleNet_", "gamelogsSample_");
-	loop.Run(1024);
+	loop.Run(16000);
 //	loop.Evaluate();
 	return 0;
 

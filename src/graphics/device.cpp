@@ -24,7 +24,7 @@ namespace Graphics {
 		std::scoped_lock<std::mutex> lock(mutex);
 		if (!m_window)
 		{
-			spdlog::info("Initializing graphics device");
+			spdlog::debug("Initializing graphics device");
 
 			m_window = new sf::RenderWindow();
 			Resize(_sizeX, _sizeY, _fullScreen);

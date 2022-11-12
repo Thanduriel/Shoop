@@ -73,7 +73,7 @@ namespace Game {
 			MAX,
 			SAMPLE,
 			SAMPLE_FILTERED,
-			RANDOM
+			RANDOM // equivalent to 100% explore ratio
 		};
 		// @_axisIntervals Number of discrete intervals for the input axis.
 		// Should be odd so that 0 is included.
@@ -104,7 +104,7 @@ namespace Learning {
 			std::string neuralNetworkName;
 			Game::DoopAI::Mode mode;
 		};
-		void Evaluate(const std::vector<RLBot>& _bots, int _numGames, size_t _numThreads);
+		void Evaluate(const std::vector<RLBot>& _bots, int _numGames, size_t _numThreads, bool _playMirror = true);
 	private:
 		std::string m_netName;
 		std::string m_logName;

@@ -35,7 +35,7 @@ namespace Game {
 		m_autoReset(_config.GetSection("general").GetValue<bool>("AutoReset")),
 		m_pairingIdx(-1)
 	{
-		spdlog::info("Creating main state");
+		spdlog::debug("Creating main state");
 
 		Map* map = new Map(m_scene);
 		m_scene.Add(*map);
@@ -127,7 +127,7 @@ namespace Game {
 			if (m_autoReset)
 			{
 				m_rules->Reset();
-				spdlog::info("Reseting rules.");
+				spdlog::debug("Reseting rules.");
 			}
 			else
 			{
@@ -135,7 +135,7 @@ namespace Game {
 				if (Classic* rules = dynamic_cast<Classic*>(m_rules.get()))
 				{
 					auto results = rules->GetResults();
-					spdlog::info("Finished match with score {}/{} draws:{}.", results[0], results[1], results[2]);
+					spdlog::debug("Finished match with score {}/{} draws:{}.", results[0], results[1], results[2]);
 					if (g_resultsMatrix) {
 						int* resPtr = g_resultsMatrix->Get(m_pairingIdx);
 						// add so that the mirror match is accumulated

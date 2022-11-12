@@ -353,7 +353,8 @@ namespace Learning {
 	ReinforcmentLoop::ReinforcmentLoop(const std::string& _netName, const std::string _logName)
 		: m_netName(_netName),
 		m_logName(_logName)
-	{}
+	{
+	}
 
 	void ReinforcmentLoop::Run(int _numGamesPerEpoch)
 	{
@@ -368,9 +369,9 @@ namespace Learning {
 			constexpr const char* testNetName = "__testNet.pt";
 			torch::save(_net, testNetName);
 			std::vector<RLBot> bots;
-			bots.push_back({ testNetName, DoopAI::Mode::RANDOM });
+			bots.push_back({ testNetName, DoopAI::Mode::SAMPLE_FILTERED });
 			bots.push_back({ "", DoopAI::Mode::RANDOM });
-			Evaluate(bots, 512, std::thread::hardware_concurrency() / 2);
+			Evaluate(bots, 2048, std::thread::hardware_concurrency() / 2, false);
 			g_resultsMatrix->Print();
 			const int winsP0 = g_resultsMatrix->Get(0, 1, 0) + g_resultsMatrix->Get(1, 0, 1);
 			const int winsP1 = g_resultsMatrix->Get(0, 1, 1) + g_resultsMatrix->Get(1, 0, 0);
@@ -385,54 +386,61 @@ namespace Learning {
 			const std::string netName = m_netName + epoch;
 
 			// create data
-			spdlog::info("Generating data {}.", path);
-			auto start = std::chrono::high_resolution_clock::now();
-			fs::create_directory(path);
-
-			auto generateData = [&](size_t threadNum, int numGames)
+			if (fs::exists(path))
 			{
-				Shoop game(1366, 768);
-				auto& section = game.Config().GetSection("learning");
-				game.Config().GetSection("general").SetValue("LogGames", 1);
-				game.Config().GetSection("gameplay").SetValue("numWinsRequired", numGames);
-				game.Config().GetSection("gameplay").SetValue("maxNumGames", numGames);
-				section.SetValue("LogPath", path + "/" + std::to_string(threadNum) + "_");
-				section.SetValue("NetworkName0", neuralNetworkNames.back());
-				section.SetValue("NetworkName1", neuralNetworkNames.back());
-				if (i == 0)
-				{
-					section.SetValue("SelectMode0", static_cast<int>(DoopAI::Mode::RANDOM));
-					section.SetValue("SelectMode1", static_cast<int>(DoopAI::Mode::RANDOM));
-				}
-				else
-				{
-					section.SetValue("SelectMode0", static_cast<int>(DoopAI::Mode::SAMPLE_FILTERED));
-					section.SetValue("SelectMode1", static_cast<int>(DoopAI::Mode::SAMPLE_FILTERED));
-				}
-				const float explore = 1.f - (i / static_cast<float>(numEpochs)) * 0.5f;
-				section.SetValue("ExploreRatio", explore);
-				game.Run();
-			};
+				spdlog::info("Skipping data generation because \"{}\" already exists.", path);
+			}
+			else
+			{
+				spdlog::info("Generating data \"{}\".", path);
+				auto start = std::chrono::high_resolution_clock::now();
+				fs::create_directory(path);
 
-			const size_t numThreads = std::max(1u, std::thread::hardware_concurrency() / 2);
-			const int gamesPerThread = _numGamesPerEpoch / static_cast<int>(numThreads);
-			std::vector<std::thread> threads;
-			for (size_t t = 0; t < numThreads - 1; ++t)
-				threads.emplace_back(generateData, t, gamesPerThread);
-			generateData(numThreads - 1, gamesPerThread);
-			for (auto& t : threads)
-				t.join();
+				auto generateData = [&](size_t threadNum, int numGames)
+				{
+					Shoop game(1366, 768);
+					auto& section = game.Config().GetSection("learning");
+					game.Config().GetSection("general").SetValue("LogGames", 1);
+					game.Config().GetSection("gameplay").SetValue("numWinsRequired", numGames);
+					game.Config().GetSection("gameplay").SetValue("maxNumGames", numGames);
+					section.SetValue("LogPath", path + "/" + std::to_string(threadNum) + "_");
+					section.SetValue("NetworkName0", neuralNetworkNames.back());
+					section.SetValue("NetworkName1", neuralNetworkNames.back());
+					if (i == 0)
+					{
+						section.SetValue("SelectMode0", static_cast<int>(DoopAI::Mode::RANDOM));
+						section.SetValue("SelectMode1", static_cast<int>(DoopAI::Mode::RANDOM));
+					}
+					else
+					{
+						section.SetValue("SelectMode0", static_cast<int>(DoopAI::Mode::SAMPLE_FILTERED));
+						section.SetValue("SelectMode1", static_cast<int>(DoopAI::Mode::SAMPLE_FILTERED));
+					}
+					const float explore = 1.f - (i / static_cast<float>(numEpochs)) * 0.5f;
+					section.SetValue("ExploreRatio", explore);
+					game.Run();
+				};
 
-			auto end = std::chrono::high_resolution_clock::now();
-			spdlog::info("Data generation took {}s.", std::chrono::duration<float>(end - start).count());
+				const size_t numThreads = std::max(1u, std::thread::hardware_concurrency() / 2);
+				const int gamesPerThread = _numGamesPerEpoch / static_cast<int>(numThreads);
+				std::vector<std::thread> threads;
+				for (size_t t = 0; t < numThreads - 1; ++t)
+					threads.emplace_back(generateData, t, gamesPerThread);
+				generateData(numThreads - 1, gamesPerThread);
+				for (auto& t : threads)
+					t.join();
+
+				auto end = std::chrono::high_resolution_clock::now();
+				spdlog::info("Data generation took {}s.", std::chrono::duration<float>(end - start).count());
+			}
 
 			// train new network
 			spdlog::info("Training network {}.", netName);
-			start = std::chrono::high_resolution_clock::now();
+			auto start = std::chrono::high_resolution_clock::now();
 			Trainer train;
 			train.Train(path, netName, testFn);
 			neuralNetworkNames.push_back(netName);
-			end = std::chrono::high_resolution_clock::now();
+			auto end = std::chrono::high_resolution_clock::now();
 			spdlog::info("Training took {}s.", std::chrono::duration<float>(end - start).count());
 		}
 	}
@@ -456,16 +464,16 @@ namespace Learning {
 		g_resultsMatrix->Print(true);
 	}
 
-	void ReinforcmentLoop::Evaluate(const std::vector<RLBot>& _bots, int _numGames, size_t _numThreads)
+	void ReinforcmentLoop::Evaluate(const std::vector<RLBot>& _bots, int _numGames, size_t _numThreads, bool _playMirror)
 	{
-		
 		g_resultsMatrix.reset(new ResultsMatrix(static_cast<int>(_bots.size()), 4));
 
 		std::vector<std::pair<size_t, size_t>> pairings;
 		for (size_t i = 0; i < _bots.size(); ++i)
 			for (size_t j = 0; j < _bots.size(); ++j)
 			{
-				pairings.emplace_back(i, j);
+				if(_playMirror || i != j)
+					pairings.emplace_back(i, j);
 			}
 
 		auto evaluateGames = [&](size_t begin, size_t end) {
@@ -482,6 +490,7 @@ namespace Learning {
 			for (size_t k = begin; k < end; ++k)
 			{
 				const auto [i, j] = pairings[k];
+			//	std::cout << fmt::format("k {} i {} j {}\n", k, i, j);
 				learningConf.SetValue("NetworkName0", _bots[i].neuralNetworkName);
 				learningConf.SetValue("SelectMode0", static_cast<int>(_bots[i].mode));
 				learningConf.SetValue("NetworkName1", _bots[j].neuralNetworkName);
@@ -492,6 +501,7 @@ namespace Learning {
 		};
 
 		std::vector<std::thread> threads;
+		_numThreads = std::min(_numThreads, pairings.size());
 		const size_t pairingsPerThread = pairings.size() / _numThreads;
 		for(size_t i = 0; i < _numThreads-1; ++i)
 			threads.emplace_back(evaluateGames, i * pairingsPerThread, (i+1)*pairingsPerThread);
