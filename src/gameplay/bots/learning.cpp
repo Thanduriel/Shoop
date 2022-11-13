@@ -289,6 +289,8 @@ namespace Learning {
 		std::future<float> testScore;
 		int64_t testEpoch = 0;
 
+		std::ofstream testScoreLog(_name + "_testScore.txt");
+
 		for (int64_t epoch = 1; epoch <= numEpochs; ++epoch)
 		{
 			net->train();
@@ -296,7 +298,9 @@ namespace Learning {
 			// report async test results
 			if (testScore.valid() && testScore.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
 			{
-				spdlog::info("test score: {}, epoch: {}", testScore.get(), testEpoch);
+				const float score = testScore.get();
+				testScoreLog << testEpoch << " " << score << "\n";
+				spdlog::info("test score: {}, epoch: {}", score, testEpoch);
 			}
 			// start next test task
 			if (!testScore.valid())
@@ -346,7 +350,14 @@ namespace Learning {
 		}
 		bestNet->to(torch::kCPU);
 		torch::save(bestNet, _name + ".pt");
-
+		
+		// report final test score
+		if (testScore.valid()) 
+		{
+			const float score = testScore.get();
+			testScoreLog << testEpoch << " " << score << "\n";
+			spdlog::info("test score: {}, epoch: {}", score, testEpoch);
+		}
 	}
 
 	// ************************************************************************ //
@@ -369,9 +380,9 @@ namespace Learning {
 			constexpr const char* testNetName = "__testNet.pt";
 			torch::save(_net, testNetName);
 			std::vector<RLBot> bots;
-			bots.push_back({ testNetName, DoopAI::Mode::SAMPLE_FILTERED });
+			bots.push_back({ testNetName, DoopAI::Mode::MAX });
 			bots.push_back({ "", DoopAI::Mode::RANDOM });
-			Evaluate(bots, 2048, std::thread::hardware_concurrency() / 2, false);
+			Evaluate(bots, 4096, std::thread::hardware_concurrency() / 2, false);
 			g_resultsMatrix->Print();
 			const int winsP0 = g_resultsMatrix->Get(0, 1, 0) + g_resultsMatrix->Get(1, 0, 1);
 			const int winsP1 = g_resultsMatrix->Get(0, 1, 1) + g_resultsMatrix->Get(1, 0, 0);
@@ -406,6 +417,8 @@ namespace Learning {
 					section.SetValue("LogPath", path + "/" + std::to_string(threadNum) + "_");
 					section.SetValue("NetworkName0", neuralNetworkNames.back());
 					section.SetValue("NetworkName1", neuralNetworkNames.back());
+					// if a ResultsMatrix exists this value needs to be set
+					section.SetValue("PairingIdx", 0);
 					if (i == 0)
 					{
 						section.SetValue("SelectMode0", static_cast<int>(DoopAI::Mode::RANDOM));
@@ -490,7 +503,6 @@ namespace Learning {
 			for (size_t k = begin; k < end; ++k)
 			{
 				const auto [i, j] = pairings[k];
-			//	std::cout << fmt::format("k {} i {} j {}\n", k, i, j);
 				learningConf.SetValue("NetworkName0", _bots[i].neuralNetworkName);
 				learningConf.SetValue("SelectMode0", static_cast<int>(_bots[i].mode));
 				learningConf.SetValue("NetworkName1", _bots[j].neuralNetworkName);

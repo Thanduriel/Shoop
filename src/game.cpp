@@ -75,7 +75,8 @@ void Shoop::Run()
 		auto newState = currentState->GetNewState();
 		if (currentState->IsFinished()) m_states.pop_back();
 		if (newState) m_states.emplace_back(std::move(newState));
-		if (m_states.size() && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape)) 
+		// in no-draw mode manual controls are used accidentally
+		if (m_states.size() && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape) && !m_noDraw)
 			m_states.pop_back();
 		// currentState could be invalid at this point, but the address is still correct
 		if (m_states.size() && currentState != m_states.back().get()) 

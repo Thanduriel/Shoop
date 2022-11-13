@@ -131,7 +131,6 @@ namespace Game {
 			}
 			else
 			{
-				Finish();
 				if (Classic* rules = dynamic_cast<Classic*>(m_rules.get()))
 				{
 					auto results = rules->GetResults();
@@ -143,6 +142,7 @@ namespace Game {
 							resPtr[i] += results[i];
 					}
 				}
+				Finish();
 			}
 		}
 
