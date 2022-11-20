@@ -333,7 +333,7 @@ namespace Learning {
 				try {
 					optimizer.step(closure);
 				}
-				catch (c10::Error err)
+				catch (const c10::Error& err)
 				{
 					spdlog::error("{}", err.msg());
 					std::abort();
@@ -446,6 +446,7 @@ namespace Learning {
 				auto end = std::chrono::high_resolution_clock::now();
 				spdlog::info("Data generation took {}s.", std::chrono::duration<float>(end - start).count());
 			}
+			return;
 
 			// train new network
 			spdlog::info("Training network {}.", netName);
@@ -603,7 +604,7 @@ namespace Game {
 			_inp.state = m_inputs[idx];
 
 		}
-		catch (c10::Error err)
+		catch (const c10::Error& err)
 		{
 			std::cout << err.msg() << "\n";
 			std::abort();

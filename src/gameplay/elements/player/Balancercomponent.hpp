@@ -13,8 +13,8 @@ namespace Game {
 		void VBalance();
 		void OBalance();
 	private:
-		float32 m_GForce;
-		float32 m_NForce;
+		float m_GForce;
+		float m_NForce;
 
 		PhysicsBodyComponent& m_targetBody;
 	};

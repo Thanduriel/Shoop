@@ -4,7 +4,7 @@
 
 namespace Game {
 
-	constexpr static float32 DEFAULT_GRAVITY = -9.81f;
+	constexpr static float DEFAULT_GRAVITY = -9.81f;
 
 	BalancerComponent::BalancerComponent(Actor& _actor, PhysicsBodyComponent& _targetBody)
 		: ProcessComponent(_actor),
@@ -26,7 +26,7 @@ namespace Game {
 	{
 		m_GForce = DEFAULT_GRAVITY  * m_targetBody.Get().GetMass();
 
-		float32 m_VForce = -m_GForce;
+		float m_VForce = -m_GForce;
 
 		//hier Kraft mit entsprechender Funktion anpassen
 		m_VForce = 1.2f - pow(m_VForce / 120.f, 2.f) + pow(m_VForce / 120.f, 4.f) * 0.3f;
@@ -40,7 +40,7 @@ namespace Game {
 		m_GForce = DEFAULT_GRAVITY  * m_targetBody.Get().GetMass();
 		m_NForce = cos(m_targetBody.Get().GetAngle()) * m_GForce;
 
-		float32 m_OForce = -m_NForce;
+		float m_OForce = -m_NForce;
 
 		//hier Kraft mit entsprechender Funktion anpassen
 		m_OForce = 1.3f - pow(m_OForce / 120.f, 2.f)+ pow(m_OForce / 120.f, 4.f) * 0.3f;

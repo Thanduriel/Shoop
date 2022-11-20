@@ -2,7 +2,7 @@
 
 #include <cmath>
 #include <type_traits>
-#include "Box2D/Common/b2Math.h"
+#include "Box2D/b2_math.h"
 #include "SFML/System/Vector2.hpp"
 #include "utils/assert.hpp"
 

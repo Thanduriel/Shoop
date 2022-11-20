@@ -14,7 +14,7 @@ namespace Game {
 	{
 		// Acquire the PhysicsInfo of a fixture.
 		static PhysicsInfo& Get(const b2Fixture& _fixture) {
-			return *static_cast<PhysicsInfo*>(_fixture.GetUserData());
+			return *reinterpret_cast<PhysicsInfo*>(_fixture.GetUserData().pointer);
 		}
 		enum Flag
 		{

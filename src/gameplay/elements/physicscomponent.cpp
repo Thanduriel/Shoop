@@ -38,9 +38,9 @@ namespace Game {
 	{
 		Assert(!m_body, "A body should only be created once per component.");
 
-		if (!_fixtureDef.userData) _fixtureDef.userData = &m_info;
+		if (!_fixtureDef.userData.pointer) _fixtureDef.userData.pointer = reinterpret_cast<uintptr_t>(&m_info);
 		m_body = Details::PhysicsWorldWrapper::m_world->CreateBody(&_def);
-		m_body->SetUserData(this);
+		m_body->GetUserData().pointer = reinterpret_cast<uintptr_t>(this);
 		m_body->CreateFixture(&_fixtureDef);
 
 		return *m_body;
@@ -49,10 +49,10 @@ namespace Game {
 	b2Body& PhysicsBodyComponent::Create(const b2BodyDef& _def, const std::vector<b2FixtureDef*>& _fixtureDefs)
 	{
 		for(auto fixtureDef : _fixtureDefs)
-			if (!fixtureDef->userData) fixtureDef->userData = &m_info;
+			if (!fixtureDef->userData.pointer) fixtureDef->userData.pointer = reinterpret_cast<uintptr_t>(&m_info);
 		Assert(!m_body, "A body should only be created once per component.");
 		m_body = Details::PhysicsWorldWrapper::m_world->CreateBody(&_def);
-		m_body->SetUserData(this);
+		m_body->GetUserData().pointer = reinterpret_cast<uintptr_t>(this);
 		for (b2FixtureDef* fixture : _fixtureDefs)
 			m_body->CreateFixture(fixture);
 
@@ -134,19 +134,19 @@ namespace Game {
 	// ****************************************************************** //
 	void ContactListener::BeginContact(b2Contact* contact)
 	{
-		PhysicsBodyComponent& compA = *reinterpret_cast<PhysicsBodyComponent*>(contact->GetFixtureA()->GetBody()->GetUserData());
+		PhysicsBodyComponent& compA = *reinterpret_cast<PhysicsBodyComponent*>(contact->GetFixtureA()->GetBody()->GetUserData().pointer);
 		if (compA.m_onContactBegin) compA.m_onContactBegin(*contact->GetFixtureA(), *contact->GetFixtureB());
 
-		PhysicsBodyComponent& compB = *reinterpret_cast<PhysicsBodyComponent*>(contact->GetFixtureB()->GetBody()->GetUserData());
+		PhysicsBodyComponent& compB = *reinterpret_cast<PhysicsBodyComponent*>(contact->GetFixtureB()->GetBody()->GetUserData().pointer);
 		if (compB.m_onContactBegin) compB.m_onContactBegin(*contact->GetFixtureB(), *contact->GetFixtureA());
 	}
 
 	void ContactListener::EndContact(b2Contact* contact)
 	{
-		PhysicsBodyComponent& compA = *reinterpret_cast<PhysicsBodyComponent*>(contact->GetFixtureA()->GetBody()->GetUserData());
+		PhysicsBodyComponent& compA = *reinterpret_cast<PhysicsBodyComponent*>(contact->GetFixtureA()->GetBody()->GetUserData().pointer);
 		if (compA.m_onContactEnd) compA.m_onContactEnd(*contact->GetFixtureA(), *contact->GetFixtureB());
 
-		PhysicsBodyComponent& compB = *reinterpret_cast<PhysicsBodyComponent*>(contact->GetFixtureB()->GetBody()->GetUserData());
+		PhysicsBodyComponent& compB = *reinterpret_cast<PhysicsBodyComponent*>(contact->GetFixtureB()->GetBody()->GetUserData().pointer);
 		if (compB.m_onContactEnd) compB.m_onContactEnd(*contact->GetFixtureB(), *contact->GetFixtureA());
 	}
 

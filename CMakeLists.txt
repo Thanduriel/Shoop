@@ -83,12 +83,11 @@ endif(NOT SFML_FOUND)
 target_link_libraries(shoop sfml-system sfml-graphics sfml-window)
 
 #box2d
-#target_include_directories(shoop PRIVATE "dependencies/Box2D/Box2D")
-# include path is also necessary to build the library itself
-include_directories("dependencies/Box2D/Box2D")
-file(GLOB_RECURSE BOX2D_SOURCE_FILES "dependencies/Box2D/Box2D/Box2D/*.h" "dependencies/Box2D/Box2D/Box2D/*.cpp")
-add_library(Box2D STATIC ${BOX2D_SOURCE_FILES})
-target_link_libraries(shoop Box2D)
+set(BOX2D_BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
+set(BOX2D_BUILD_TESTBED OFF CACHE BOOL "" FORCE)
+add_subdirectory("dependencies/Box2D")
+target_include_directories(shoop PRIVATE "dependencies/Box2D/include")
+target_link_libraries(shoop box2d)
 
 #spdlog
 target_include_directories(shoop PRIVATE "dependencies/spdlog/include")
