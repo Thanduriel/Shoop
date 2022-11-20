@@ -45,7 +45,7 @@ namespace Learning {
 	class Dataset : public torch::data::Dataset<Dataset>
 	{
 	public:
-		Dataset(const std::string& _path, int _numIntervals, torch::Device _device = torch::kCPU);
+		Dataset(const std::string& _path, int _numIntervals, torch::Device _device = torch::kCPU, bool _winsOnly = true);
 
 		torch::data::Example<> get(size_t index) override;
 		c10::optional<size_t> size() const override;
@@ -83,6 +83,7 @@ namespace Game {
 
 	private:
 		std::vector<Input::InputState> m_inputs;
+		int64_t m_numInputs;
 		Learning::MLP m_neuralNet;
 		Mode m_mode;
 		float m_exploreRatio;

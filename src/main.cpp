@@ -23,10 +23,10 @@ int main()
 #else
 	spdlog::set_level(spdlog::level::debug);
 #endif
-//	Learning::ReinforcmentLoop loop("testData_", "gamelogsTest_");
-//	loop.Run(8000);
+	Learning::ReinforcmentLoop loop("winLossNet_", "gamelogsWL_");
+	loop.Run(32768);
 //	loop.Evaluate();
-//	return 0;
+	return 0;
 
 	Shoop shoop(1366, 768);
 	shoop.Run();
