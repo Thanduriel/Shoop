@@ -30,7 +30,7 @@ namespace Game {
 
 		for (const State& state : states)
 		{
-			file.write(reinterpret_cast<char*>(states.data()), sizeof(State));
+			file.write(reinterpret_cast<const char*>(&state), sizeof(State));
 		}
 	}
 

@@ -47,7 +47,7 @@ void Shoop::Run()
 	{
 		// handle events
 		sf::Event event;
-		while (Device::GetWindow().pollEvent(event))
+		while (!m_noDraw && Device::GetWindow().pollEvent(event))
 		{
 			if (event.type == sf::Event::Closed)
 				Device::GetWindow().close();

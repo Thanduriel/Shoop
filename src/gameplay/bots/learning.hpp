@@ -45,7 +45,10 @@ namespace Learning {
 	class Dataset : public torch::data::Dataset<Dataset>
 	{
 	public:
-		Dataset(const std::string& _path, int _numIntervals, torch::Device _device = torch::kCPU, bool _winsOnly = true);
+		Dataset(const std::string& _path, int _numIntervals, 
+			torch::Device _device = torch::kCPU, 
+			bool _winsOnly = true,
+			size_t _maxStepsPerGame = std::numeric_limits<size_t>::max());
 
 		torch::data::Example<> get(size_t index) override;
 		c10::optional<size_t> size() const override;
@@ -72,7 +75,8 @@ namespace Game {
 		enum struct Mode {
 			MAX,
 			SAMPLE,
-			SAMPLE_FILTERED,
+			SAMPLE_FILTERED, // filter 50 %
+			SAMPLE_FILTERED_90, // filter 90 %
 			RANDOM // equivalent to 100% explore ratio
 		};
 		// @_axisIntervals Number of discrete intervals for the input axis.
@@ -95,9 +99,10 @@ namespace Learning {
 	class ReinforcmentLoop
 	{
 	public:
-		ReinforcmentLoop(const std::string& _netName = "net_", const std::string _logName = "gamelogs_");
+		ReinforcmentLoop(const std::string& _netName = "net_", 
+			const std::string& _logName = "gamelogs_");
 
-		void Run(int _numGamesPerEpoch);
+		void Run(int _numGamesPerEpoch, unsigned _numThreads = 0);
 		void Evaluate();
 
 		struct RLBot
