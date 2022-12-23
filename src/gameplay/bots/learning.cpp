@@ -70,6 +70,33 @@ namespace Learning {
 		return out(x);
 	}
 
+	TwinMLPImpl::TwinMLPImpl(const Options& _twinOptions, const Options& _outputOptions)
+		: twinOptions(_twinOptions),
+		outputOptions(_outputOptions),
+		twinMLP(nullptr),
+		outputMLP(nullptr)
+	{
+		assert(_twinOptions.out_size * 2 == _outputOptions.in_size);
+		reset();
+	}
+
+	void TwinMLPImpl::reset()
+	{
+		twinMLP = MLP(twinOptions);
+		register_module("twinMLP", twinMLP);
+		outputMLP = MLP(outputOptions);
+		register_module("outMLP", outputMLP);
+	}
+
+	torch::Tensor TwinMLPImpl::forward(torch::Tensor x)
+	{
+		const int64_t s = x.sizes().back() / 2;
+		const torch::Tensor x1 = twinMLP(x.slice(-1, 0, s));
+		const torch::Tensor x2 = twinMLP(x.slice(-1, s));
+		return outputMLP(torch::concat({ x1,x2 }, -1));
+	}
+
+	// ************************************************************************ //
 	std::vector<float> MakeLinSpace(int _numIntervals)
 	{
 		std::vector<float> values(_numIntervals);
@@ -296,8 +323,11 @@ namespace Learning {
 	}
 
 	constexpr int numIntervals = 5;
-	constexpr int64_t hiddenSize = 64;
-	constexpr int64_t numLayers = 6;
+	constexpr int64_t numLayersTwin = 3;
+	constexpr int64_t hiddenSizeTwin = 32;
+	constexpr int64_t outSizeTwin = 32;
+	constexpr int64_t hiddenSize = 48;
+	constexpr int64_t numLayers = 3;
 	constexpr int64_t batchSize = 4096;//1024;
 	constexpr int64_t numEpochs = 512;
 	const double lr = 0.01;
@@ -308,13 +338,32 @@ namespace Learning {
 	constexpr size_t maxStepsPerGame = 32;
 	constexpr bool useStepWeighting = true;
 
+	template<typename Net>
+	Net MakeNet();
+
+	template <>
+	auto MakeNet<MLP>() -> MLP {
+		const int64_t numOutputs = MakeInputSpace(numIntervals).size();
+		return MLP(MLPOptions(GetSheepStateSize() * 2, hiddenSize, useWinsOnly ? numOutputs : numOutputs * 2)
+			.layers(numLayers));
+	}
+
+	template <>
+	auto MakeNet<TwinMLP>() -> TwinMLP {
+		const int64_t numOutputs = MakeInputSpace(numIntervals).size();
+		const auto twinOptions = MLPOptions(GetSheepStateSize(), hiddenSizeTwin, outSizeTwin).layers(numLayersTwin);
+		const auto outOptions = MLPOptions(outSizeTwin*2, hiddenSize, useWinsOnly ? numOutputs : numOutputs * 2).layers(numLayers);
+		return TwinMLP(twinOptions, outOptions);
+	}
+
+
 	void Trainer::Train(const std::string& _path, const std::string& _name, CustomTestFn _testFn)
 	{
 		namespace dat = torch::data;
 
 		const int64_t numOutputs = MakeInputSpace(numIntervals).size();
-		MLP net(MLPOptions(GetSheepStateSize() * 2, hiddenSize, useWinsOnly ? numOutputs : 2 * numOutputs).layers(numLayers));
-		MLP bestNet = clone(net);
+		NetType net = MakeNet<NetType>();
+		NetType bestNet = clone(net);
 
 		torch::Device device(torch::kCPU);
 		if (torch::cuda::is_available()) 
@@ -444,7 +493,7 @@ namespace Learning {
 
 //		auto& gameplayConf = game.Config().GetSection("gameplay");
 
-		auto testFn = [this](const MLP& _net)
+		auto testFn = [this](const NetType& _net)
 		{
 			constexpr const char* testNetName = "__testNet.pt";
 			torch::save(_net, testNetName);
@@ -607,8 +656,7 @@ namespace Game {
 	DoopAI::DoopAI(const std::string& _netName, Mode _mode, float _exploreRatio)
 		: m_inputs(MakeInputSpace(numIntervals)),
 		m_numInputs(static_cast<int64_t>(m_inputs.size())),
-		m_neuralNet(MLPOptions(GetSheepStateSize() * 2, hiddenSize, useWinsOnly ? m_numInputs : m_numInputs * 2)
-			.layers(numLayers)),
+		m_neuralNet(MakeNet<NetType>()),
 		m_mode(_mode),
 		m_exploreRatio(_exploreRatio),
 		m_random(++g_rngSeed)

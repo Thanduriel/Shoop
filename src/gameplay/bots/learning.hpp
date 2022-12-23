@@ -42,6 +42,26 @@ namespace Learning {
 	};
 	TORCH_MODULE(MLP);
 
+	struct TwinMLPImpl : public torch::nn::Cloneable<TwinMLPImpl>
+	{
+		using Options = MLPOptions;
+
+		explicit TwinMLPImpl(const Options& _twinOptions, const Options& _outOptions);
+
+		void reset() override;
+
+		torch::Tensor forward(torch::Tensor x);
+
+		Options twinOptions;
+		Options outputOptions;
+
+		MLP twinMLP;
+		MLP outputMLP;
+	};
+	TORCH_MODULE(TwinMLP);
+
+	using NetType = TwinMLP;
+
 	class Dataset : public torch::data::Dataset<Dataset>
 	{
 	public:
@@ -62,7 +82,7 @@ namespace Learning {
 	class Trainer
 	{
 	public:
-		using CustomTestFn = std::function<float(const MLP&)>;
+		using CustomTestFn = std::function<float(const NetType&)>;
 		void Train(const std::string& _path, const std::string& _name, CustomTestFn _testFn);
 	};
 
@@ -89,7 +109,7 @@ namespace Game {
 	private:
 		std::vector<Input::InputState> m_inputs;
 		int64_t m_numInputs;
-		Learning::MLP m_neuralNet;
+		Learning::NetType m_neuralNet;
 		Mode m_mode;
 		float m_exploreRatio;
 		Generators::RandomGenerator m_random;
