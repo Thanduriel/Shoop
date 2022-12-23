@@ -52,7 +52,7 @@ namespace Learning {
 		auto forwardLayer = [this](size_t idx, torch::Tensor x) {
 			x = linLayers[idx]->forward(x);
 			x = normLayers[idx]->forward(x);
-			return torch::tanh(x);
+			return torch::gelu(x);
 		};
 		x = forwardLayer(0, x);
 
@@ -153,6 +153,7 @@ namespace Learning {
 	// ************************************************************************ //
 	Dataset::Dataset(const std::string& _path, int _numIntervals, torch::Device _device, 
 		bool _winsOnly,
+		bool _withStep,
 		size_t _maxStepsPerGame)
 	{
 		const std::vector<float> values = MakeLinSpace(_numIntervals);
@@ -232,7 +233,12 @@ namespace Learning {
 					if (!_winsOnly) 
 					{
 						const int lossIdx = discretizeInputs(logLoss.states[i]);
+					//	std::cout << winIdx << " " << lossIdx << "\n";
 						outputsTemp.push_back(lossIdx);
+					}
+					if (_withStep)
+					{
+						outputsTemp.push_back(static_cast<int>(log.states.size() - i));
 					}
 				}
 			}
@@ -243,9 +249,13 @@ namespace Learning {
 		static const c10::TensorOptions options(c10::kInt);
 		m_outputs = torch::from_blob(outputsTemp.data(), { static_cast<int64_t>(outputsTemp.size()) }, options)
 			.to(_device, c10::kLong, false, true);
+		int64_t valuesPerSample = 1;
 		// wins / loss inputs are alternating
 		if (!_winsOnly)
-			m_outputs = m_outputs.reshape({ m_outputs.size(0) / 2, 2 });
+			++valuesPerSample;
+		if (_withStep)
+			++valuesPerSample;
+		m_outputs = m_outputs.reshape({ m_outputs.size(0) / valuesPerSample, valuesPerSample });
 	}
 
 	torch::data::Example<> Dataset::get(size_t index)
@@ -295,7 +305,8 @@ namespace Learning {
 	constexpr bool useCrossEntropy = true; // not really usable currently
 	constexpr bool useWinsOnly = false;
 	constexpr float winWeighting = 0.5f;
-	constexpr size_t maxStepsPerGame = 8;
+	constexpr size_t maxStepsPerGame = 32;
+	constexpr bool useStepWeighting = true;
 
 	void Trainer::Train(const std::string& _path, const std::string& _name, CustomTestFn _testFn)
 	{
@@ -362,13 +373,20 @@ namespace Learning {
 					torch::Tensor loss;
 					if constexpr (useCrossEntropy)
 					{
+						using namespace torch::indexing;
+						constexpr int64_t reduction = useStepWeighting ? at::Reduction::None : at::Reduction::Mean;
 						if constexpr (useWinsOnly)
-							loss = torch::cross_entropy_loss(output, batch.target);
+							loss = torch::cross_entropy_loss(output, batch.target, {}, reduction);
 						else
 						{
-							using namespace torch::indexing;
-							loss = winWeighting * torch::cross_entropy_loss(output.slice(1, 0, numOutputs), batch.target.index({ Slice(), 0 }))
-								+ (1.f- winWeighting) * torch::cross_entropy_loss(output.slice(1, numOutputs), batch.target.index({ Slice(), 1 }));
+							loss = winWeighting * torch::cross_entropy_loss(output.slice(1, 0, numOutputs), batch.target.index({ Slice(), 0 }), {}, reduction)
+								+ (1.f - winWeighting) * torch::cross_entropy_loss(output.slice(1, numOutputs), batch.target.index({ Slice(), 1 }), {}, reduction);
+						}
+
+						if constexpr (useStepWeighting)
+						{
+							const torch::Tensor weights = 1.f / torch::sqrt(batch.target.index({ Slice(), -1 }).to(torch::kFloat));
+							loss = torch::mean(torch::mul(loss, weights));
 						}
 					}
 					else 

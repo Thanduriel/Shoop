@@ -76,7 +76,7 @@ namespace Game {
 					new AIControllerComponent(sheep, *m_rules, 
 						DoopAI(learnSettings.GetValue<std::string>(netNameKey), 
 							static_cast<DoopAI::Mode>(learnSettings.GetValue<int>(modeKey)), learnSettings.GetValue<float>("ExploreRatio")),
-						4.f, 
+						8.f, 
 						controllerId,
 						logGames,
 						logGames ? learnSettings.GetValue<std::string>("LogPath") : ""));

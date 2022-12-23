@@ -23,8 +23,8 @@ int main()
 #else
 	spdlog::set_level(spdlog::level::debug);
 #endif
-	Learning::ReinforcmentLoop loop("fixedDataNet_", "gameLogsFixed_");
-	loop.Run(1, 1);
+	Learning::ReinforcmentLoop loop("fixedDataNet_", "gameLogsFixedLarge_");
+	loop.Run(64000, 4);
 //	loop.Evaluate();
 	return 0;
 

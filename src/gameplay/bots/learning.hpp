@@ -22,7 +22,7 @@ namespace Learning {
 		TORCH_ARG(bool, with_bias) = true;
 		TORCH_ARG(bool, skip_connections) = true;
 		TORCH_ARG(bool, elementwise_affine) = true;
-		//TORCH_ARG(ACT, activation) = ACT::tanh;
+	//	TORCH_ARG(ACT, activation) = ACT::tanh;
 	};
 
 	struct MLPImpl : public torch::nn::Cloneable<MLPImpl > 
@@ -48,6 +48,7 @@ namespace Learning {
 		Dataset(const std::string& _path, int _numIntervals, 
 			torch::Device _device = torch::kCPU, 
 			bool _winsOnly = true,
+			bool _withStep = true,
 			size_t _maxStepsPerGame = std::numeric_limits<size_t>::max());
 
 		torch::data::Example<> get(size_t index) override;
