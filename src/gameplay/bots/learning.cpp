@@ -177,11 +177,27 @@ namespace Learning {
 		return torch::from_blob(const_cast<SheepState*>(&state), { GetSheepStateSize() }, options).clone();
 	}
 
+	constexpr size_t NUM_AXIS = static_cast<size_t>(Input::Axis::COUNT);
+	constexpr size_t NUM_ACTIONS = static_cast<size_t>(Input::Action::COUNT);
+	constexpr size_t PLAYER_INPUT_SIZE = NUM_AXIS + NUM_ACTIONS;
+	torch::Tensor ToTensor(const Input::InputState& _inputState)
+	{
+		torch::Tensor tensor = torch::empty(PLAYER_INPUT_SIZE, c10::TensorOptions(c10::kFloat));
+		auto buf = tensor.accessor<float, 1>();
+		for (size_t i = 0; i < NUM_AXIS; ++i)
+			buf[i] = _inputState.axis[i];
+		for (size_t i = 0; i < NUM_ACTIONS; ++i)
+			buf[i+NUM_AXIS] = _inputState.actions[i];
+
+		return tensor;
+	}
+
 	// ************************************************************************ //
 	Dataset::Dataset(const std::string& _path, int _numIntervals, torch::Device _device, 
 		bool _winsOnly,
 		bool _withStep,
-		size_t _maxStepsPerGame)
+		size_t _maxStepsPerGame,
+		bool _alternativeMode)
 	{
 		const std::vector<float> values = MakeLinSpace(_numIntervals);
 		std::vector<float> intervals(values.size() + 1);
@@ -194,7 +210,7 @@ namespace Learning {
 		constexpr size_t numAxis = static_cast<size_t>(Input::Axis::COUNT);
 		constexpr size_t numActions = GAME_ACTIONS.size();
 
-		auto discretizeInputs = [&](const GameLog::State& state)
+		auto DiscretizeInputs = [&](const GameLog::State& state)
 		{
 			int idx = 0;
 			int stride = 1;
@@ -253,19 +269,42 @@ namespace Learning {
 					? log.states.size() - _maxStepsPerGame : 0u;
 				for (size_t i = start; i < log.states.size(); ++i)
 				{
-					const int winIdx = discretizeInputs(log.states[i]);
-					inputsTemp.emplace_back(torch::concat({ ToTensor(log.states[i].self), ToTensor(log.states[i].other) }));
-					outputsTemp.push_back(winIdx);
+					if (_alternativeMode)
+					{
+						torch::Tensor stateSelf = ToTensor(log.states[i].self);
+						torch::Tensor stateOther = ToTensor(log.states[i].other);
 
-					if (!_winsOnly) 
-					{
-						const int lossIdx = discretizeInputs(logLoss.states[i]);
-					//	std::cout << winIdx << " " << lossIdx << "\n";
-						outputsTemp.push_back(lossIdx);
+						inputsTemp.emplace_back(torch::concat({ stateSelf,
+							ToTensor(log.states[i].input), 
+							stateOther }));
+						outputsTemp.push_back(1);
+						if (_withStep)
+							outputsTemp.push_back(static_cast<int>(log.states.size() - i));
+
+						inputsTemp.emplace_back(torch::concat({ stateOther,
+							ToTensor(logLoss.states[i].input), 
+							stateSelf }));
+						outputsTemp.push_back(0);
+						if (_withStep)
+							outputsTemp.push_back(static_cast<int>(log.states.size() - i));
 					}
-					if (_withStep)
+					else
 					{
-						outputsTemp.push_back(static_cast<int>(log.states.size() - i));
+						const int winIdx = DiscretizeInputs(log.states[i]);
+
+						inputsTemp.emplace_back(torch::concat({ ToTensor(log.states[i].self),
+							ToTensor(log.states[i].other) }));
+						outputsTemp.push_back(winIdx);
+
+						if (!_winsOnly)
+						{
+							const int lossIdx = DiscretizeInputs(logLoss.states[i]);
+							//	std::cout << winIdx << " " << lossIdx << "\n";
+							outputsTemp.push_back(lossIdx);
+						}
+
+						if (_withStep)
+							outputsTemp.push_back(static_cast<int>(log.states.size() - i));
 					}
 				}
 			}
@@ -275,14 +314,32 @@ namespace Learning {
 		//	std::cout << mean << " stddev: \n" << stddev << "\n";
 		static const c10::TensorOptions options(c10::kInt);
 		m_outputs = torch::from_blob(outputsTemp.data(), { static_cast<int64_t>(outputsTemp.size()) }, options)
-			.to(_device, c10::kLong, false, true);
+			.to(_device, _alternativeMode ? c10::kFloat : c10::kLong, false, true);
 		int64_t valuesPerSample = 1;
 		// wins / loss inputs are alternating
-		if (!_winsOnly)
+		if (!_alternativeMode && !_winsOnly)
 			++valuesPerSample;
 		if (_withStep)
 			++valuesPerSample;
 		m_outputs = m_outputs.reshape({ m_outputs.size(0) / valuesPerSample, valuesPerSample });
+	}
+
+	Dataset::Dataset(const torch::Tensor& inputs, const torch::Tensor& outputs)
+		: m_inputs(inputs),
+		m_outputs(outputs)
+	{
+	}
+
+	Dataset Dataset::Split(float _ratio)
+	{
+		const int64_t splitIdx = (1.f-_ratio) * m_inputs.sizes()[0];
+		torch::Tensor newInputs = m_inputs.slice(0, splitIdx);
+		torch::Tensor newOutputs = m_outputs.slice(0, splitIdx);
+
+		m_inputs = m_inputs.slice(0, 0, splitIdx);
+		m_outputs = m_outputs.slice(0, 0, splitIdx);
+
+		return Dataset(newInputs, newOutputs);
 	}
 
 	torch::data::Example<> Dataset::get(size_t index)
@@ -326,25 +383,42 @@ namespace Learning {
 	constexpr int64_t numLayersTwin = 3;
 	constexpr int64_t hiddenSizeTwin = 32;
 	constexpr int64_t outSizeTwin = 32;
-	constexpr int64_t hiddenSize = 48;
-	constexpr int64_t numLayers = 3;
-	constexpr int64_t batchSize = 4096;//1024;
+	constexpr int64_t hiddenSize = 64;
+	constexpr int64_t numLayers = 6;
+	constexpr int64_t batchSize = 16384;//1024;
 	constexpr int64_t numEpochs = 512;
-	const double lr = 0.01;
-	const double wd = 1e-5;
-	constexpr bool useCrossEntropy = true; // not really usable currently
+	constexpr double lr = 0.01;
+	constexpr double wd = 1e-5;
+	constexpr float validDataSplit = 0.2f;
+
+	// only for cross_entropy training
 	constexpr bool useWinsOnly = false;
 	constexpr float winWeighting = 0.5f;
+
+
 	constexpr size_t maxStepsPerGame = 32;
-	constexpr bool useStepWeighting = true;
+	constexpr bool useStepWeighting = false;
+	constexpr bool alternativeMode = true;
 
 	template<typename Net>
 	Net MakeNet();
 
 	template <>
 	auto MakeNet<MLP>() -> MLP {
-		const int64_t numOutputs = MakeInputSpace(numIntervals).size();
-		return MLP(MLPOptions(GetSheepStateSize() * 2, hiddenSize, useWinsOnly ? numOutputs : numOutputs * 2)
+		int64_t numInputs = GetSheepStateSize() * 2;
+		int64_t numOutputs;
+		if (alternativeMode)
+		{
+			numInputs += PLAYER_INPUT_SIZE;
+			numOutputs = 1;
+		}
+		else
+		{
+			const int64_t numPlayerInputs = MakeInputSpace(numIntervals).size();
+			numOutputs = useWinsOnly ? numPlayerInputs : numPlayerInputs * 2;
+		}
+
+		return MLP(MLPOptions(numInputs, hiddenSize, numOutputs)
 			.layers(numLayers));
 	}
 
@@ -377,11 +451,18 @@ namespace Learning {
 		using Sampler = std::conditional_t<USE_SEQ_SAMPLER,
 			dat::samplers::SequentialSampler,
 			dat::samplers::RandomSampler>;
-		auto data_loader = dat::make_data_loader<Sampler>(
-			Dataset(_path, numIntervals, device, useWinsOnly, maxStepsPerGame).map(dat::transforms::Stack<>()),
+		Dataset dataset(_path, numIntervals, device, useWinsOnly, useStepWeighting, maxStepsPerGame, alternativeMode);
+		auto valid_loader = dat::make_data_loader<Sampler>(
+			dataset.Split(validDataSplit)
+			.map(dat::transforms::Stack<>()),
 			dat::DataLoaderOptions().batch_size(batchSize));
+		auto data_loader = dat::make_data_loader<Sampler>(
+			std::move(dataset)
+				.map(dat::transforms::Stack<>()),
+					dat::DataLoaderOptions().batch_size(batchSize));
 
-		float totalLoss = 0.0;
+		float tempLoss = 0.f;
+		float totalLoss = 0.f;
 		float minLoss = std::numeric_limits<float>::max();
 		int forwardRuns = 0;
 
@@ -392,6 +473,43 @@ namespace Learning {
 		int64_t testEpoch = 0;
 
 		std::ofstream testScoreLog(_name + "_testScore.txt");
+		std::ofstream trainLossLog(_name + "_trainLoss.txt");
+
+		auto lossFn = [&](torch::Tensor output, const torch::Tensor& _target)
+		{
+			using namespace torch::indexing;
+			constexpr int64_t reduction = useStepWeighting ? at::Reduction::None : at::Reduction::Mean;
+
+			torch::Tensor loss;
+			output = output.squeeze(-1);
+			torch::Tensor target = _target;
+			if constexpr (useStepWeighting)
+				target = target.slice(1, 0, -1);
+			target = target.squeeze(-1);
+
+			if constexpr (alternativeMode)
+			{
+				loss = torch::mse_loss(torch::sigmoid(output), target, reduction);
+			}
+			else
+			{
+				if constexpr (useWinsOnly)
+					loss = torch::cross_entropy_loss(output, target, {}, reduction);
+				else
+				{
+					loss = winWeighting * torch::cross_entropy_loss(output.slice(1, 0, numOutputs), _target.index({ Slice(), 0 }), {}, reduction)
+						+ (1.f - winWeighting) * torch::cross_entropy_loss(output.slice(1, numOutputs), _target.index({ Slice(), 1 }), {}, reduction);
+				}
+			}
+
+			if constexpr (useStepWeighting)
+			{
+				const torch::Tensor weights = 1.f / torch::sqrt(_target.index({ Slice(), -1 }).to(torch::kFloat));
+				loss = torch::mean(torch::mul(loss, weights));
+			}
+
+			return loss;
+		};
 
 		for (int64_t epoch = 1; epoch <= numEpochs; ++epoch)
 		{
@@ -418,28 +536,8 @@ namespace Learning {
 				auto closure = [&]()
 				{
 					net->zero_grad();
-					torch::Tensor output = net->forward(batch.data);
-					torch::Tensor loss;
-					if constexpr (useCrossEntropy)
-					{
-						using namespace torch::indexing;
-						constexpr int64_t reduction = useStepWeighting ? at::Reduction::None : at::Reduction::Mean;
-						if constexpr (useWinsOnly)
-							loss = torch::cross_entropy_loss(output, batch.target, {}, reduction);
-						else
-						{
-							loss = winWeighting * torch::cross_entropy_loss(output.slice(1, 0, numOutputs), batch.target.index({ Slice(), 0 }), {}, reduction)
-								+ (1.f - winWeighting) * torch::cross_entropy_loss(output.slice(1, numOutputs), batch.target.index({ Slice(), 1 }), {}, reduction);
-						}
+					torch::Tensor loss = lossFn(net->forward(batch.data), batch.target);
 
-						if constexpr (useStepWeighting)
-						{
-							const torch::Tensor weights = 1.f / torch::sqrt(batch.target.index({ Slice(), -1 }).to(torch::kFloat));
-							loss = torch::mean(torch::mul(loss, weights));
-						}
-					}
-					else 
-						loss = LabelMSE(output, batch.target, numOutputs, 1.f, 15.f);
 					totalLoss += loss.item<float>();
 					++forwardRuns; // count runs to normalize the training error
 
@@ -457,14 +555,30 @@ namespace Learning {
 					std::abort();
 				}
 			}
+
+			net->eval();
+			float totalValidLoss = 0.f;
+			int validRuns = 0;
+			for (dat::Example<>& batch : *valid_loader)
+			{
+					net->zero_grad();
+					torch::Tensor output = net->forward(batch.data).squeeze(-1);
+					torch::Tensor loss = lossFn(output, batch.target);
+
+					totalValidLoss += loss.item<float>();
+					++validRuns;
+			}
 			
 			const float loss = totalLoss / forwardRuns;
+			const float validLoss = totalValidLoss / validRuns;
 			if (minLoss < loss)
 			{
 				minLoss = loss;
 				bestNet = clone(net);
 			}
-			spdlog::info("epoch: {}, loss: {}", epoch, loss);
+			spdlog::info("epoch: {}, loss: {}, valid: {}", epoch, loss, validLoss);
+			std::cout << tempLoss / forwardRuns << "\n";
+			trainLossLog << epoch << " " << loss << "\n";
 		}
 		bestNet->to(torch::kCPU);
 		torch::save(bestNet, _name + ".pt");
@@ -651,6 +765,7 @@ namespace Game {
 
 	using namespace Learning;
 
+	// use global atomic seed to ensure that the RNG varies between bots
 	std::atomic<int> g_rngSeed = 123456;
 
 	DoopAI::DoopAI(const std::string& _netName, Mode _mode, float _exploreRatio)
@@ -664,6 +779,15 @@ namespace Game {
 		const std::string netName = _netName + ".pt";
 		if (fs::exists(netName))
 			torch::load(m_neuralNet, netName);
+
+		if constexpr (alternativeMode)
+		{
+			std::vector<torch::Tensor> playerInputs;
+			playerInputs.reserve(m_numInputs);
+			for (const auto& inp : m_inputs)
+				playerInputs.emplace_back(ToTensor(inp));
+			m_inputsAsTensor = torch::stack(playerInputs, 0);
+		}
 	}
 
 	void DoopAI::operator()(const SheepState& _self, const SheepState& _oth, Input::VirtualInputs& _inp)
@@ -678,23 +802,34 @@ namespace Game {
 
 		torch::Tensor x;
 		try {
-			x = torch::concat({ ToTensor(_self), ToTensor(_oth) });
-			x = m_neuralNet->forward(x);
-
-			if constexpr (!useWinsOnly)
+			if constexpr (alternativeMode)
 			{
-				torch::Tensor predWin = torch::softmax(x.slice(0, 0, m_numInputs), 0);
-				torch::Tensor predLoss = torch::softmax(x.slice(0, m_numInputs), 0);
-				// difference is in [-1,1]
-				x = (predWin - predLoss) * 0.5f + 0.5f;
-				x *= 2.f / m_numInputs;
-		//		spdlog::info("========================== {}", x.sum().item<float>());
-		//		for (int64_t i = 0; i < predWin.size(0); ++i)
-		//			spdlog::info("{} w:{} l:{} t:{}", i, predWin[i].item<float>(), predLoss[i].item<float>(), x[i].item<float>());
+				x = torch::concat({ ToTensor(_self).expand({m_numInputs, -1}), 
+						m_inputsAsTensor, 
+						ToTensor(_oth).expand({m_numInputs, -1}) }, -1);
+				x = torch::sigmoid(m_neuralNet->forward(x).squeeze(-1));
+				x /= x.sum();
 			}
 			else
 			{
-				x = torch::softmax(x, 0);
+				x = torch::concat({ ToTensor(_self), ToTensor(_oth) });
+				x = m_neuralNet->forward(x);
+
+				if constexpr (!useWinsOnly)
+				{
+					torch::Tensor predWin = torch::softmax(x.slice(0, 0, m_numInputs), 0);
+					torch::Tensor predLoss = torch::softmax(x.slice(0, m_numInputs), 0);
+					// difference is in [-1,1]
+					x = (predWin - predLoss) * 0.5f + 0.5f;
+					x *= 2.f / m_numInputs;
+					//		spdlog::info("========================== {}", x.sum().item<float>());
+					//		for (int64_t i = 0; i < predWin.size(0); ++i)
+					//			spdlog::info("{} w:{} l:{} t:{}", i, predWin[i].item<float>(), predLoss[i].item<float>(), x[i].item<float>());
+				}
+				else
+				{
+					x = torch::softmax(x, 0);
+				}
 			}
 
 			auto SelectRandom = [this](const torch::Tensor& t)

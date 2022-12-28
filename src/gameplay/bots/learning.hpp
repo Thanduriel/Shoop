@@ -60,7 +60,7 @@ namespace Learning {
 	};
 	TORCH_MODULE(TwinMLP);
 
-	using NetType = TwinMLP;
+	using NetType = MLP;
 
 	class Dataset : public torch::data::Dataset<Dataset>
 	{
@@ -69,7 +69,13 @@ namespace Learning {
 			torch::Device _device = torch::kCPU, 
 			bool _winsOnly = true,
 			bool _withStep = true,
-			size_t _maxStepsPerGame = std::numeric_limits<size_t>::max());
+			size_t _maxStepsPerGame = std::numeric_limits<size_t>::max(),
+			bool _alternativeMode = false);
+
+		Dataset(const torch::Tensor& inputs, const torch::Tensor& outputs);
+
+		// @param _ratio Number of samples to move into the new dataset
+		Dataset Split(float _ratio);
 
 		torch::data::Example<> get(size_t index) override;
 		c10::optional<size_t> size() const override;
@@ -108,6 +114,7 @@ namespace Game {
 
 	private:
 		std::vector<Input::InputState> m_inputs;
+		torch::Tensor m_inputsAsTensor;
 		int64_t m_numInputs;
 		Learning::NetType m_neuralNet;
 		Mode m_mode;
