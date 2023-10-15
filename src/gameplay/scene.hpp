@@ -6,7 +6,7 @@
 #include <array>
 
 #include "core/component.hpp"
-#include "Box2D/Box2D.h"
+#include "box2d/box2d.h"
 
 namespace sf {
 	class RenderWindow;

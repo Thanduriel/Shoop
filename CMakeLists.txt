@@ -86,7 +86,7 @@ target_link_libraries(shoop sfml-system sfml-graphics sfml-window)
 set(BOX2D_BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
 set(BOX2D_BUILD_TESTBED OFF CACHE BOOL "" FORCE)
 add_subdirectory("dependencies/Box2D")
-target_include_directories(shoop PRIVATE "dependencies/Box2D/include")
+target_include_directories(shoop PRIVATE "dependencies/box2d/include")
 target_link_libraries(shoop box2d)
 
 #spdlog

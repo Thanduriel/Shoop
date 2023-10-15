@@ -4,7 +4,7 @@
 #include <functional>
 #include "math/transformation.hpp"
 #include "gameplay/core/component.hpp"
-#include "Box2D/Box2D.h"
+#include "box2d/box2d.h"
 #include "gameplay/core/actor.hpp"
 
 namespace Game {
