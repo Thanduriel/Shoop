@@ -16,12 +16,12 @@ namespace Graphics {
 
 	const float WORLD_TO_SCREEN = 70.f;
 
+	std::mutex g_deviceMutex;
+
 	void Device::Init(int _sizeX, int _sizeY, bool _fullScreen)
 	{
-		static std::mutex mutex;
-
 		// even with multiple game instances just one window is needed
-		std::scoped_lock<std::mutex> lock(mutex);
+		std::scoped_lock<std::mutex> lock(g_deviceMutex);
 		if (!m_window)
 		{
 			spdlog::debug("Initializing graphics device");

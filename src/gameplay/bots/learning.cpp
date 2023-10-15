@@ -389,7 +389,7 @@ namespace Learning {
 	constexpr int64_t numEpochs = 512;
 	constexpr double lr = 0.01;
 	constexpr double wd = 1e-5;
-	constexpr float validDataSplit = 0.2f;
+	constexpr float validDataSplit = 0.25f;
 
 	// only for cross_entropy training
 	constexpr bool useWinsOnly = false;
@@ -397,7 +397,7 @@ namespace Learning {
 
 
 	constexpr size_t maxStepsPerGame = 32;
-	constexpr bool useStepWeighting = false;
+	constexpr bool useStepWeighting = true;
 	constexpr bool alternativeMode = true;
 
 	template<typename Net>
@@ -474,6 +474,7 @@ namespace Learning {
 
 		std::ofstream testScoreLog(_name + "_testScore.txt");
 		std::ofstream trainLossLog(_name + "_trainLoss.txt");
+		std::ofstream validLossLog(_name + "_validLoss.txt");
 
 		auto lossFn = [&](torch::Tensor output, const torch::Tensor& _target)
 		{
@@ -511,7 +512,8 @@ namespace Learning {
 			return loss;
 		};
 
-		for (int64_t epoch = 1; epoch <= numEpochs; ++epoch)
+		int numEpochsWithoutImprovement = 0;
+		for (int64_t epoch = 1; epoch <= numEpochs && numEpochsWithoutImprovement < 16; ++epoch)
 		{
 			net->train();
 
@@ -569,16 +571,18 @@ namespace Learning {
 					++validRuns;
 			}
 			
+			++numEpochsWithoutImprovement;
 			const float loss = totalLoss / forwardRuns;
 			const float validLoss = totalValidLoss / validRuns;
-			if (minLoss < loss)
+			if (validLoss < minLoss)
 			{
-				minLoss = loss;
+				minLoss = validLoss;
 				bestNet = clone(net);
+				numEpochsWithoutImprovement = 0;
 			}
 			spdlog::info("epoch: {}, loss: {}, valid: {}", epoch, loss, validLoss);
-			std::cout << tempLoss / forwardRuns << "\n";
-			trainLossLog << epoch << " " << loss << "\n";
+			trainLossLog << epoch << " " << loss << std::endl;
+			validLossLog << epoch << " " << validLoss << std::endl;
 		}
 		bestNet->to(torch::kCPU);
 		torch::save(bestNet, _name + ".pt");
@@ -658,8 +662,8 @@ namespace Learning {
 					}
 					else
 					{
-						section.SetValue("SelectMode0", static_cast<int>(DoopAI::Mode::SAMPLE_FILTERED));
-						section.SetValue("SelectMode1", static_cast<int>(DoopAI::Mode::SAMPLE_FILTERED));
+						section.SetValue("SelectMode0", static_cast<int>(DoopAI::Mode::SAMPLE_FILTERED_90));
+						section.SetValue("SelectMode1", static_cast<int>(DoopAI::Mode::SAMPLE_FILTERED_90));
 					}
 					const float explore = 1.f - (i / static_cast<float>(numEpochs)) * 0.5f;
 					section.SetValue("ExploreRatio", explore);
