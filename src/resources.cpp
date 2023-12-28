@@ -1,6 +1,8 @@
 #include <string>
 #include <unordered_map>
 #include <assert.h>
+#include <mutex>
+#include <array>
 
 #include "SFML/Graphics.hpp"
 #include "resources.hpp"
@@ -12,6 +14,8 @@ namespace Details {
 		T& Load(const std::string& _name, TArgs&&... _args)
 		{
 			static std::unordered_map<std::string, T> map;
+			static std::mutex resourceMut;
+			std::scoped_lock lock(resourceMut);
 
 			auto it = map.find(_name);
 
@@ -98,6 +102,8 @@ public:
 template<>
 sf::Texture& Resources::Load<sf::Texture>(const std::string& _name)
 {
-	return Details::Load < TextureTrait, sf::Texture, decltype(&sf::Texture::loadFromFile), &sf::Texture::loadFromFile> (_name, sf::IntRect());
+	std::array<std::byte, sizeof(sf::Texture)> buf = {};
+	return reinterpret_cast<sf::Texture&>(*buf.data());
+//	return Details::Load < TextureTrait, sf::Texture, decltype(&sf::Texture::loadFromFile), &sf::Texture::loadFromFile> (_name, sf::IntRect());
 }
 

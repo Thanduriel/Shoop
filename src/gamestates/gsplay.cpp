@@ -41,14 +41,20 @@ namespace Game {
 		m_scene.Add(*map);
 		m_rules->SetMap(*map);
 
-		if (sf::Joystick::isConnected(0))
-			m_input1.reset(new Input::GamePadInputInterface(_config.GetSection("gamepad1"), 0));
-		else
-			m_input1.reset(new Input::KeyBoardInputInterface(_config.GetSection("keyboard2")));
-		if (sf::Joystick::isConnected(1))
-			m_input2.reset(new Input::GamePadInputInterface(_config.GetSection("gamepad1"), 1));
-		else
-			m_input2.reset(new Input::KeyBoardInputInterface(_config.GetSection("keyboard1")));
+		const bool needInputs = !_config.GetSection("video").GetValue<bool>("NoDraw");
+		if(needInputs)
+		{
+			spdlog::debug("Initializing input devices");
+
+			if (sf::Joystick::isConnected(0))
+				m_input1.reset(new Input::GamePadInputInterface(_config.GetSection("gamepad1"), 0));
+			else
+				m_input1.reset(new Input::KeyBoardInputInterface(_config.GetSection("keyboard2")));
+			if (sf::Joystick::isConnected(1))
+				m_input2.reset(new Input::GamePadInputInterface(_config.GetSection("gamepad1"), 1));
+			else
+				m_input2.reset(new Input::KeyBoardInputInterface(_config.GetSection("keyboard1")));
+		}
 
 		const sf::Color playerRed(206, 0, 0); 
 		const sf::Color playerGreen(12, 183, 0);
@@ -146,7 +152,7 @@ namespace Game {
 			}
 		}
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R))
+		if (m_input1 && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R))
 			m_rules->Reset();
 	}
 

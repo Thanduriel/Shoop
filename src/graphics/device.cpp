@@ -5,6 +5,8 @@
 namespace Graphics {
 
 	sf::RenderWindow* Device::m_window = nullptr;
+	bool Device::m_isDummy = false;
+	Math::Vec2U Device::m_size = {};
 
 	const Utils::ConfigSection::Initializer<int, 4> VideoSettings(
 		{ {
@@ -35,6 +37,16 @@ namespace Graphics {
 		}
 	}
 
+	void Device::InitDummy(int _sizeX, int _sizeY)
+	{
+		std::scoped_lock<std::mutex> lock(g_deviceMutex);
+		if(!m_isDummy){
+			spdlog::debug("Initializing dummy device");
+			m_isDummy = true;
+			m_size = Math::Vec2U(_sizeX, _sizeY);
+		}
+	}
+
 	void Device::Close()
 	{
 		delete m_window;
@@ -49,6 +61,7 @@ namespace Graphics {
 		m_window->create(sf::VideoMode(_sizeX, _sizeY), "shoop", style, settings);
 
 		SetView(true);
+		m_size = m_window->getSize();
 	}
 
 	Math::Vec2 Device::ToScreenSpace(Math::Vec2 _position)
@@ -64,7 +77,7 @@ namespace Graphics {
 
 	Math::Vec2 Device::GetSizeWorldSpace()
 	{
-		return Math::Vec2(m_window->getSize()) / WORLD_TO_SCREEN;
+		return Math::Vec2(m_size) / WORLD_TO_SCREEN;
 	}
 
 	void Device::SetView(bool _worldView)

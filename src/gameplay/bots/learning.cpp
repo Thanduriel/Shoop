@@ -601,24 +601,29 @@ namespace Learning {
 		: m_netName(_netName),
 		m_logName(_logName)
 	{
+		spdlog::info("Creating RL-loop loop with nets: \"{}\", logs: \"{}\".", _netName, _logName);
 	}
 
 	void ReinforcmentLoop::Run(int _numGamesPerEpoch, unsigned _numThreads)
 	{
+		const unsigned numThreads = _numThreads ? _numThreads : std::max(1u, std::thread::hardware_concurrency() / 2);
+		
+		spdlog::info("Running RL-loop with {} games per epoch and {} threads.", _numGamesPerEpoch, numThreads);
+
 		std::vector<std::string> neuralNetworkNames;
 		// start with newly initialized network
 		neuralNetworkNames.push_back("");
 
 //		auto& gameplayConf = game.Config().GetSection("gameplay");
 
-		auto testFn = [this](const NetType& _net)
+		auto testFn = [this, numThreads](const NetType& _net)
 		{
 			constexpr const char* testNetName = "__testNet.pt";
 			torch::save(_net, testNetName);
 			std::vector<RLBot> bots;
 			bots.push_back({ testNetName, DoopAI::Mode::SAMPLE_FILTERED_90 });
 			bots.push_back({ "", DoopAI::Mode::RANDOM });
-			Evaluate(bots, 4096, std::thread::hardware_concurrency() / 2, false);
+			Evaluate(bots, 4096, numThreads);
 			g_resultsMatrix->Print();
 			const int winsP0 = g_resultsMatrix->Get(0, 1, 0) + g_resultsMatrix->Get(1, 0, 1);
 			const int winsP1 = g_resultsMatrix->Get(0, 1, 1) + g_resultsMatrix->Get(1, 0, 0);
@@ -670,7 +675,6 @@ namespace Learning {
 					game.Run();
 				};
 				
-				const unsigned numThreads = _numThreads ? _numThreads : std::max(1u, std::thread::hardware_concurrency() / 2);
 				const int gamesPerThread = _numGamesPerEpoch / static_cast<int>(numThreads);
 				std::vector<std::thread> threads;
 				for (unsigned t = 0; t < numThreads - 1; ++t)

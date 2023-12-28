@@ -13,6 +13,7 @@ namespace Graphics {
 	{
 	public:
 		static void Init(int _sizeX, int _sizeY, bool _fullScreen);
+		static void InitDummy(int _sizeX, int _sizeY);
 		static void Close();
 
 		static void Resize(int _sizeX, int _sizeY, bool _fullScreen);
@@ -33,6 +34,8 @@ namespace Graphics {
 		Device(const Device&) = delete;
 
 		static sf::RenderWindow* m_window;
+		static bool m_isDummy;
+		static Math::Vec2U m_size;
 	};
 
 	const extern Utils::ConfigSection::Initializer<int, 4> VideoSettings;

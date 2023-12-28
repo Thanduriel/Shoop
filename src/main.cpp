@@ -10,7 +10,11 @@
 #endif
 #endif
 
-int main()
+#ifdef LEARNING_AI
+#include <thread>
+#endif
+
+int main(int argc , char** argv)
 {
 #if defined(_MSC_VER)
 #if defined(DEBUG) || defined(_DEBUG)
@@ -18,14 +22,20 @@ int main()
 //	_CrtSetBreakAlloc(168);
 #endif
 #endif
+
 #ifdef NDEBUG
 	spdlog::set_level(spdlog::level::info);
 #else
 	spdlog::set_level(spdlog::level::debug);
 #endif
+
 #ifdef LEARNING_AI
-	Learning::ReinforcmentLoop loop("fixedDataNet3_", "gameLogsFixedLarge3_");
-	loop.Run(64000, 4);
+	const std::string netName = argc > 1 ? argv[1] : "net_";
+	const std::string logName = argc > 2 ? argv[2] : "gameLogs_";
+	const int gamesPerEpoch = argc > 3 ? atoi(argv[3]) : 4096;
+	const int numThreads = argc > 4 ? atoi(argv[4]) : 0;
+	Learning::ReinforcmentLoop loop(netName, logName);
+	loop.Run(gamesPerEpoch, numThreads);
 //	loop.Evaluate();
 	return 0;
 #else

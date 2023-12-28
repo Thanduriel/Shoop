@@ -17,9 +17,17 @@ Shoop::Shoop(int _sizeX, int _sizeY)
 	const Utils::ConfigSection& videoSettings = m_config.GetSection("video");
 	m_noDraw = videoSettings.GetValue<bool>("NoDraw");
 
-	Device::Init(videoSettings.GetValue<int>("ResolutionX"),
-		videoSettings.GetValue<int>("ResolutionY"),
-		videoSettings.GetValue<int>("Fullscreen"));
+	if(m_noDraw)
+	{
+		Device::InitDummy(videoSettings.GetValue<int>("ResolutionX"),
+			videoSettings.GetValue<int>("ResolutionY"));	
+	}
+	else
+	{
+		Device::Init(videoSettings.GetValue<int>("ResolutionX"),
+			videoSettings.GetValue<int>("ResolutionY"),
+			videoSettings.GetValue<int>("Fullscreen"));
+	}
 }
 
 // explicit definition here for the destructor of GameState
@@ -43,7 +51,7 @@ void Shoop::Run()
 
 	sf::Clock clock;
 
-	while (m_states.size() && Device::GetWindow().isOpen())
+	while (m_states.size() && (m_noDraw || Device::GetWindow().isOpen()))
 	{
 		// handle events
 		sf::Event event;
@@ -76,7 +84,7 @@ void Shoop::Run()
 		if (currentState->IsFinished()) m_states.pop_back();
 		if (newState) m_states.emplace_back(std::move(newState));
 		// in no-draw mode manual controls are used accidentally
-		if (m_states.size() && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape) && !m_noDraw)
+		if (m_states.size() && !m_noDraw && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
 			m_states.pop_back();
 		// currentState could be invalid at this point, but the address is still correct
 		if (m_states.size() && currentState != m_states.back().get()) 
