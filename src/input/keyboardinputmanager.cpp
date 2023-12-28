@@ -57,12 +57,3 @@ namespace Input
 		return axis;
 	}
 }
-
-std::istream& operator >> (std::istream& _in, Key& _key)
-{
-	int i;
-	_in >> i;
-	_key = static_cast<Key>(i);
-
-	return _in;
-}

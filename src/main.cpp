@@ -23,13 +23,15 @@ int main()
 #else
 	spdlog::set_level(spdlog::level::debug);
 #endif
+#ifdef LEARNING_AI
 	Learning::ReinforcmentLoop loop("fixedDataNet3_", "gameLogsFixedLarge3_");
 	loop.Run(64000, 4);
 //	loop.Evaluate();
 	return 0;
-
+#else
 	Shoop shoop(1366, 768);
 	shoop.Run();
+#endif
 
 	return 0;
 }

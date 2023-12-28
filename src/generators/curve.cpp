@@ -22,6 +22,6 @@ namespace Generators{
 		for (int i = 0; i < _numPoints; ++i)
 			curve[i] = Vec2(lowerBound.x + i * step, lowerBound.y + random.Uniform(0.f, yRange));
 
-		return std::move(curve);
+		return curve;
 	}
 }

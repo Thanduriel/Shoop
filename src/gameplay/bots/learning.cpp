@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <thread>
 #include <future>
+#include <fstream>
 
 namespace fs = std::filesystem;
 
@@ -76,7 +77,7 @@ namespace Learning {
 		twinMLP(nullptr),
 		outputMLP(nullptr)
 	{
-		assert(_twinOptions.out_size * 2 == _outputOptions.in_size);
+		assert(_twinOptions.out_size() * 2 == _outputOptions.in_size());
 		reset();
 	}
 
@@ -461,7 +462,6 @@ namespace Learning {
 				.map(dat::transforms::Stack<>()),
 					dat::DataLoaderOptions().batch_size(batchSize));
 
-		float tempLoss = 0.f;
 		float totalLoss = 0.f;
 		float minLoss = std::numeric_limits<float>::max();
 		int forwardRuns = 0;
@@ -860,7 +860,7 @@ namespace Game {
 				break;
 			case Mode::SAMPLE_FILTERED:
 			{
-				torch::Tensor sortedIdx = torch::argsort(x, 0).slice(0, 0, x.numel() / 2);
+				torch::Tensor sortedIdx = torch::argsort(x, static_cast<int64_t>(0)).slice(0, 0, x.numel() / 2);
 				x.index_put_({ sortedIdx }, torch::zeros(sortedIdx.sizes(), x.options()));
 				x /= x.sum();
 				idx = SelectRandom(x);
@@ -868,7 +868,7 @@ namespace Game {
 			}
 			case Mode::SAMPLE_FILTERED_90:
 			{
-				torch::Tensor sortedIdx = torch::argsort(x, 0).slice(0, 0, static_cast<int64_t>(x.numel() * 0.9f));
+				torch::Tensor sortedIdx = torch::argsort(x, static_cast<int64_t>(0)).slice(0, 0, static_cast<int64_t>(x.numel() * 0.9f));
 				x.index_put_({ sortedIdx }, torch::zeros(sortedIdx.sizes(), x.options()));
 				x /= x.sum();
 				idx = SelectRandom(x);

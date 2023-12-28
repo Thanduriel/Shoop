@@ -34,11 +34,10 @@ namespace Generators {
 
 			std::vector<Vec2> points;
 			points.reserve(_segments + 2);
-			const float ratio = static_cast<float>(_segments) / _curvePoints.size();
+		//	const float ratio = static_cast<float>(_segments) / _curvePoints.size();
 
 			const float distX = _curvePoints.back().x - _curvePoints.front().x;
 
-			float sum = 0.f;
 			for (size_t j = 0; j < _curvePoints.size() - 1; ++j)
 			{
 				const Vec2& start = _curvePoints[j];

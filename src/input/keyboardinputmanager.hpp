@@ -3,6 +3,7 @@
 #include "SFML/Window.hpp"
 #include "actions.hpp"
 #include "inputmanager.hpp"
+#include "serialization.hpp"
 #include "utils/config.hpp"
 
 namespace Input
@@ -24,6 +25,3 @@ namespace Input
 	const extern Utils::ConfigSection::Initializer<sf::Keyboard::Key, 6> Keyboard1;
 	const extern Utils::ConfigSection::Initializer<sf::Keyboard::Key, 6> Keyboard2;
 }
-
-// allow reading of keys from a config
-std::istream& operator >> (std::istream& _in, sf::Keyboard::Key& _key);

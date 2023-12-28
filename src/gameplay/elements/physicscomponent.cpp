@@ -125,7 +125,7 @@ namespace Game {
 			default:
 				Assert(false, "This shape type is not supported for debug draw.");
 			}
-		} while (fixture = fixture->GetNext());
+		} while ((fixture = fixture->GetNext()));
 
 
 

@@ -2,6 +2,7 @@
 
 #include <array>
 #include <unordered_map>
+#include <cstddef>
 
 namespace Input
 {

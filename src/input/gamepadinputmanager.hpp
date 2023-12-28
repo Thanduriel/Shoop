@@ -3,16 +3,11 @@
 #include <SFML/Window/Joystick.hpp>
 #include "actions.hpp"
 #include "inputmanager.hpp"
+#include "serialization.hpp"
 #include "utils/config.hpp"
 
 namespace Input
 {
-	enum GamePadButton
-	{ 
-		A, B, X, Y, LB, RB, Select, Start, COUNT, 
-		NONE = -1
-	};
-
 	class GamePadInputInterface : public InputInterface
 	{
 	public:
@@ -31,7 +26,3 @@ namespace Input
 	const extern Utils::ConfigSection::Initializer<GamePadButton, 6> Gamepad1Buttons;
 	const extern Utils::ConfigSection::Initializer<sf::Joystick::Axis, 2> Gamepad1Axis;
 }
-
-// allow reading of keys from a config
-std::istream& operator >> (std::istream& _in, Input::GamePadButton& _key);
-std::istream& operator >> (std::istream& _in, sf::Joystick::Axis& _axis);
